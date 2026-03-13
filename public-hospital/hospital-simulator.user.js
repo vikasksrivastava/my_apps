@@ -1,11 +1,10 @@
 // ==UserScript==
-// @name         TechMart RUM Traffic Simulator
-// @namespace    http://techmart.demo/
+// @name         MedCare Hospital RUM Traffic Simulator
+// @namespace    http://medcare.hospital.demo/
 // @version      1.0
-// @description  Simulates real user traffic on TechMart demo site for RUM demonstrations
+// @description  Simulates hospital staff workflow traffic for RUM demonstrations
 // @author       RUM Demo
-// @match        http://localhost:3000/*
-// @match        http://127.0.0.1:3000/*
+// @match        *://*/*
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
@@ -35,66 +34,41 @@
 //     1. Open this .user.js file URL in browser
 //     2. Tampermonkey will auto-detect and prompt to install
 //
-// STEP 3: Start the TechMart demo server
-// --------------------------------------
+// STEP 3: Start the MedCare Hospital server
+// -----------------------------------------
 //   cd /path/to/rum_app
-//   python3 server.py
+//   python3 hospital-server.py
 //
-// STEP 4: Open the demo site
-// --------------------------
-//   Navigate to: http://localhost:3000
+// STEP 4: Open the hospital platform
+// ----------------------------------
+//   Navigate to: http://localhost:3001
 //   The simulator will auto-start in 3 seconds
 //
 // ============================================================================
-// FEATURES
+// SIMULATED HOSPITAL WORKFLOW (per cycle)
 // ============================================================================
 //
-//   - Auto-start:      Begins simulation automatically after 3 seconds
-//   - Visual overlay:  Shows status, cycle count, actions performed, runtime
-//   - Full user flow:  Browse -> Add to Cart -> Buy -> Payment -> Checkout
-//   - Continuous loop: Repeats the entire flow indefinitely
-//   - Controls:        Start/Pause/Stop buttons in the overlay panel
-//   - Smart waits:     Waits for 6-second server delays before continuing
-//
-// ============================================================================
-// SIMULATION FLOW (per cycle)
-// ============================================================================
-//
-//   1.  Browse home page
-//   2.  Scroll to products
-//   3.  Add Laptop to cart         (triggers 6s delay)
-//   4.  Add Headphones to cart     (triggers 6s delay)
-//   5.  View deals section
-//   6.  Add Keyboard to cart       (triggers 6s delay)
-//   7.  Open cart -> Checkout      (triggers 6s delay)
-//   8.  Buy Watch                  (triggers 6s delay)
-//   9.  Add Tablet to cart         (triggers 6s delay)
-//   10. Open cart -> Payment       (triggers 6s delay)
+//   1.  View dashboard
+//   2.  View patient record (Critical patient)     - 6s delay
+//   3.  Order lab tests                            - 6s delay
+//   4.  View another patient record                - 6s delay
+//   5.  Prescribe medication                       - 6s delay
+//   6.  Check lab results                          - 6s delay
+//   7.  Perform ER triage                          - 6s delay
+//   8.  Admit new patient                          - 6s delay
+//   9.  Discharge ready patient                    - 6s delay
+//   10. Schedule appointment                       - 6s delay
 //   11. Repeat from step 1...
 //
 // ============================================================================
-// CONSOLE API (for manual control)
+// CONSOLE API
 // ============================================================================
 //
-//   rumSimulator.start()                    // Start the simulation
-//   rumSimulator.stop()                     // Stop the simulation
-//   rumSimulator.togglePause()              // Pause or resume
-//   rumSimulator.getState()                 // Get current state object
-//   rumSimulator.setConfig('loopDelay', 3000)   // Change delay between actions
-//   rumSimulator.setConfig('autoStart', false)  // Disable auto-start
-//
-// ============================================================================
-// CONFIGURATION OPTIONS (modify in CONFIG object below)
-// ============================================================================
-//
-//   enabled:              true/false - Master toggle for simulation
-//   loopDelay:            ms - Delay between actions (default: 2000)
-//   loopPauseAfterCycle:  ms - Pause after completing full cycle (default: 5000)
-//   randomizeDelays:      true/false - Add randomness to delays
-//   maxRandomDelay:       ms - Max additional random delay (default: 1500)
-//   autoStart:            true/false - Start automatically on page load
-//   logToConsole:         true/false - Log actions to browser console
-//   showOverlay:          true/false - Show visual status panel
+//   hospitalSimulator.start()           // Start the simulation
+//   hospitalSimulator.stop()            // Stop the simulation
+//   hospitalSimulator.togglePause()     // Pause or resume
+//   hospitalSimulator.getState()        // Get current state
+//   hospitalSimulator.setConfig('loopDelay', 3000)  // Change settings
 //
 // ============================================================================
 
@@ -105,34 +79,34 @@
     // CONFIGURATION
     // ========================================
     const CONFIG = {
-        enabled: true,                    // Toggle simulation on/off
-        loopDelay: 2000,                  // Delay between actions (ms)
-        loopPauseAfterCycle: 5000,        // Pause after completing a full cycle (ms)
-        randomizeDelays: true,            // Add randomness to delays
-        maxRandomDelay: 1500,             // Max additional random delay (ms)
-        autoStart: true,                  // Start simulation automatically
-        logToConsole: true,               // Log actions to console
-        showOverlay: true,                // Show status overlay on page
-        simulateScrolling: true,          // Simulate page scrolling
-        simulateMouseMovement: true,      // Simulate mouse movements
+        enabled: true,
+        loopDelay: 2000,
+        loopPauseAfterCycle: 5000,
+        randomizeDelays: true,
+        maxRandomDelay: 1500,
+        autoStart: true,
+        logToConsole: true,
+        showOverlay: true,
     };
 
-    // Actions to perform in sequence
+    // Hospital workflow actions
     const ACTIONS = [
-        { name: 'Browse Home', type: 'browse', duration: 3000 },
-        { name: 'View Product 1', type: 'scroll', target: '.product-card:nth-child(1)', duration: 2000 },
-        { name: 'Add to Cart - Laptop', type: 'click', target: 'addToCart-laptop-pro' },
-        { name: 'Browse More', type: 'scroll', target: '.product-card:nth-child(3)', duration: 2000 },
-        { name: 'Add to Cart - Headphones', type: 'click', target: 'addToCart-headphones-pro' },
-        { name: 'View Deals', type: 'scroll', target: '.deals-section', duration: 2000 },
-        { name: 'Add Deal Item', type: 'click', target: 'addToCart-keyboard-rgb' },
-        { name: 'Open Cart', type: 'function', action: 'openCart' },
-        { name: 'Proceed to Checkout', type: 'function', action: 'checkout' },
-        { name: 'Browse Again', type: 'scroll', target: '.hero', duration: 2000 },
-        { name: 'Buy Now - Watch', type: 'click', target: 'buyNow-watch-ultra' },
-        { name: 'Add Another Item', type: 'click', target: 'addToCart-tablet-pro' },
-        { name: 'Open Cart Again', type: 'function', action: 'openCart' },
-        { name: 'Go to Payment', type: 'function', action: 'payment' },
+        { name: 'Review Dashboard', type: 'browse', duration: 3000 },
+        { name: 'View Critical Patient Record', type: 'click', target: 'viewRecord-10045892' },
+        { name: 'Order Lab Tests - Critical Patient', type: 'click', target: 'orderLab-10045892' },
+        { name: 'Submit Lab Order', type: 'function', action: 'submitLabOrder' },
+        { name: 'Review Monitoring Patient', type: 'click', target: 'viewRecord-10061234' },
+        { name: 'Prescribe Medication', type: 'click', target: 'prescribe-10048721' },
+        { name: 'Submit Prescription', type: 'function', action: 'submitPrescription' },
+        { name: 'Check Lab Results', type: 'click', target: 'labResults-10033456' },
+        { name: 'ER Triage Assessment', type: 'function', action: 'openTriage' },
+        { name: 'Complete Triage', type: 'function', action: 'submitTriage' },
+        { name: 'Admit New Patient', type: 'function', action: 'openAdmit' },
+        { name: 'Submit Admission', type: 'function', action: 'submitAdmit' },
+        { name: 'Discharge Patient', type: 'click', target: 'discharge-10057890' },
+        { name: 'Schedule Follow-up', type: 'function', action: 'openSchedule' },
+        { name: 'Submit Schedule', type: 'function', action: 'submitSchedule' },
+        { name: 'View ICU Patient', type: 'click', target: 'viewRecord-10033456' },
     ];
 
     // ========================================
@@ -153,11 +127,11 @@
     function log(message, type = 'info') {
         if (!CONFIG.logToConsole) return;
         const timestamp = new Date().toLocaleTimeString();
-        const prefix = `[RUM Simulator ${timestamp}]`;
+        const prefix = `[Hospital Sim ${timestamp}]`;
         switch(type) {
             case 'error': console.error(prefix, message); break;
             case 'warn': console.warn(prefix, message); break;
-            case 'success': console.log(`%c${prefix} ${message}`, 'color: #27ae60'); break;
+            case 'success': console.log(`%c${prefix} ${message}`, 'color: #059669'); break;
             default: console.log(prefix, message);
         }
     }
@@ -169,19 +143,6 @@
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms + getRandomDelay()));
-    }
-
-    function simulateMouseMove(element) {
-        if (!CONFIG.simulateMouseMovement || !element) return;
-        const rect = element.getBoundingClientRect();
-        const event = new MouseEvent('mouseover', {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-            clientX: rect.left + rect.width / 2,
-            clientY: rect.top + rect.height / 2
-        });
-        element.dispatchEvent(event);
     }
 
     function smoothScrollTo(element) {
@@ -199,14 +160,14 @@
         if (!CONFIG.showOverlay) return;
 
         const overlay = document.createElement('div');
-        overlay.id = 'rum-simulator-overlay';
+        overlay.id = 'hospital-sim-overlay';
         overlay.innerHTML = `
             <style>
-                #rum-simulator-overlay {
+                #hospital-sim-overlay {
                     position: fixed;
                     bottom: 20px;
                     right: 20px;
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    background: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);
                     color: white;
                     padding: 15px 20px;
                     border-radius: 12px;
@@ -214,22 +175,22 @@
                     font-size: 13px;
                     z-index: 10000;
                     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-                    min-width: 280px;
+                    min-width: 300px;
                     transition: all 0.3s ease;
                 }
-                #rum-simulator-overlay.minimized {
+                #hospital-sim-overlay.minimized {
                     min-width: auto;
                     padding: 10px 15px;
                 }
-                #rum-simulator-overlay.minimized .sim-details { display: none; }
-                #rum-simulator-overlay h4 {
+                #hospital-sim-overlay.minimized .sim-details { display: none; }
+                #hospital-sim-overlay h4 {
                     margin: 0 0 10px 0;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     font-size: 14px;
                 }
-                #rum-simulator-overlay .sim-status {
+                #hospital-sim-overlay .sim-status {
                     display: inline-block;
                     width: 10px;
                     height: 10px;
@@ -237,39 +198,40 @@
                     margin-right: 8px;
                     animation: pulse 1.5s infinite;
                 }
-                #rum-simulator-overlay .sim-status.running { background: #27ae60; }
-                #rum-simulator-overlay .sim-status.paused { background: #f39c12; animation: none; }
-                #rum-simulator-overlay .sim-status.stopped { background: #e74c3c; animation: none; }
+                #hospital-sim-overlay .sim-status.running { background: #10b981; }
+                #hospital-sim-overlay .sim-status.paused { background: #f59e0b; animation: none; }
+                #hospital-sim-overlay .sim-status.stopped { background: #ef4444; animation: none; }
                 @keyframes pulse {
                     0%, 100% { opacity: 1; }
                     50% { opacity: 0.5; }
                 }
-                #rum-simulator-overlay .sim-details {
+                #hospital-sim-overlay .sim-details {
                     margin: 10px 0;
                     padding: 10px;
                     background: rgba(255,255,255,0.1);
                     border-radius: 8px;
                 }
-                #rum-simulator-overlay .sim-row {
+                #hospital-sim-overlay .sim-row {
                     display: flex;
                     justify-content: space-between;
                     margin: 5px 0;
                 }
-                #rum-simulator-overlay .sim-label { opacity: 0.7; }
-                #rum-simulator-overlay .sim-value { font-weight: 600; }
-                #rum-simulator-overlay .sim-action {
-                    background: rgba(102, 126, 234, 0.3);
+                #hospital-sim-overlay .sim-label { opacity: 0.7; }
+                #hospital-sim-overlay .sim-value { font-weight: 600; }
+                #hospital-sim-overlay .sim-action {
+                    background: rgba(59, 130, 246, 0.3);
                     padding: 8px;
                     border-radius: 6px;
                     margin-top: 10px;
                     text-align: center;
+                    font-size: 12px;
                 }
-                #rum-simulator-overlay .sim-controls {
+                #hospital-sim-overlay .sim-controls {
                     display: flex;
                     gap: 8px;
                     margin-top: 12px;
                 }
-                #rum-simulator-overlay button {
+                #hospital-sim-overlay button {
                     flex: 1;
                     padding: 8px;
                     border: none;
@@ -279,37 +241,37 @@
                     font-size: 12px;
                     transition: all 0.2s;
                 }
-                #rum-simulator-overlay .btn-start { background: #27ae60; color: white; }
-                #rum-simulator-overlay .btn-pause { background: #f39c12; color: white; }
-                #rum-simulator-overlay .btn-stop { background: #e74c3c; color: white; }
-                #rum-simulator-overlay .btn-minimize { background: rgba(255,255,255,0.2); color: white; }
-                #rum-simulator-overlay button:hover { transform: scale(1.02); }
+                #hospital-sim-overlay .btn-start { background: #10b981; color: white; }
+                #hospital-sim-overlay .btn-pause { background: #f59e0b; color: white; }
+                #hospital-sim-overlay .btn-stop { background: #ef4444; color: white; }
+                #hospital-sim-overlay .btn-minimize { background: rgba(255,255,255,0.2); color: white; }
+                #hospital-sim-overlay button:hover { transform: scale(1.02); }
             </style>
             <h4>
-                <span><span class="sim-status stopped" id="sim-status-dot"></span>RUM Traffic Simulator</span>
-                <button class="btn-minimize" onclick="window.rumSimulator.toggleMinimize()">_</button>
+                <span><span class="sim-status stopped" id="hsim-status-dot"></span>🏥 Hospital Workflow Sim</span>
+                <button class="btn-minimize" onclick="window.hospitalSimulator.toggleMinimize()">_</button>
             </h4>
             <div class="sim-details">
                 <div class="sim-row">
-                    <span class="sim-label">Cycles:</span>
-                    <span class="sim-value" id="sim-cycles">0</span>
+                    <span class="sim-label">Shift Cycles:</span>
+                    <span class="sim-value" id="hsim-cycles">0</span>
                 </div>
                 <div class="sim-row">
                     <span class="sim-label">Actions:</span>
-                    <span class="sim-value" id="sim-actions">0</span>
+                    <span class="sim-value" id="hsim-actions">0</span>
                 </div>
                 <div class="sim-row">
-                    <span class="sim-label">Runtime:</span>
-                    <span class="sim-value" id="sim-runtime">00:00</span>
+                    <span class="sim-label">Shift Time:</span>
+                    <span class="sim-value" id="hsim-runtime">00:00</span>
                 </div>
-                <div class="sim-action" id="sim-current-action">
-                    Ready to start...
+                <div class="sim-action" id="hsim-current-action">
+                    Ready to start shift...
                 </div>
             </div>
             <div class="sim-controls">
-                <button class="btn-start" id="sim-btn-start" onclick="window.rumSimulator.start()">Start</button>
-                <button class="btn-pause" id="sim-btn-pause" onclick="window.rumSimulator.togglePause()" style="display:none">Pause</button>
-                <button class="btn-stop" id="sim-btn-stop" onclick="window.rumSimulator.stop()" style="display:none">Stop</button>
+                <button class="btn-start" id="hsim-btn-start" onclick="window.hospitalSimulator.start()">Start Shift</button>
+                <button class="btn-pause" id="hsim-btn-pause" onclick="window.hospitalSimulator.togglePause()" style="display:none">Pause</button>
+                <button class="btn-stop" id="hsim-btn-stop" onclick="window.hospitalSimulator.stop()" style="display:none">End Shift</button>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -318,13 +280,13 @@
     function updateOverlay() {
         if (!CONFIG.showOverlay) return;
 
-        const statusDot = document.getElementById('sim-status-dot');
-        const cyclesEl = document.getElementById('sim-cycles');
-        const actionsEl = document.getElementById('sim-actions');
-        const runtimeEl = document.getElementById('sim-runtime');
-        const btnStart = document.getElementById('sim-btn-start');
-        const btnPause = document.getElementById('sim-btn-pause');
-        const btnStop = document.getElementById('sim-btn-stop');
+        const statusDot = document.getElementById('hsim-status-dot');
+        const cyclesEl = document.getElementById('hsim-cycles');
+        const actionsEl = document.getElementById('hsim-actions');
+        const runtimeEl = document.getElementById('hsim-runtime');
+        const btnStart = document.getElementById('hsim-btn-start');
+        const btnPause = document.getElementById('hsim-btn-pause');
+        const btnStop = document.getElementById('hsim-btn-stop');
 
         if (statusDot) {
             statusDot.className = 'sim-status ' + (state.running ? (state.paused ? 'paused' : 'running') : 'stopped');
@@ -353,49 +315,42 @@
     }
 
     function setCurrentAction(actionName) {
-        const el = document.getElementById('sim-current-action');
+        const el = document.getElementById('hsim-current-action');
         if (el) el.textContent = actionName;
         updateOverlay();
     }
 
     // ========================================
-    // ACTION HANDLERS
+    // WAIT FUNCTIONS
     // ========================================
     async function waitForLoadingToComplete() {
-        // Wait for loading overlay to appear and disappear
         return new Promise(resolve => {
             const checkLoading = () => {
                 const loadingOverlay = document.getElementById('loadingOverlay');
                 if (loadingOverlay && loadingOverlay.classList.contains('active')) {
-                    // Still loading, check again
                     setTimeout(checkLoading, 500);
                 } else {
-                    // Loading complete
                     resolve();
                 }
             };
-            // Start checking after a small delay to let loading start
             setTimeout(checkLoading, 500);
         });
     }
 
-    async function waitForModalAndClose() {
-        // Wait for success modal and close it
+    async function waitForModalAndClose(modalId = 'successModal') {
         return new Promise(resolve => {
             const checkModal = () => {
-                const modal = document.getElementById('successModal');
+                const modal = document.getElementById(modalId);
                 if (modal && modal.classList.contains('active')) {
-                    // Modal is showing, close it after a brief view
                     setTimeout(() => {
                         if (typeof window.closeModal === 'function') {
-                            window.closeModal();
+                            window.closeModal(modalId);
                         } else {
                             modal.classList.remove('active');
                         }
                         setTimeout(resolve, 500);
                     }, 1000);
                 } else {
-                    // Keep checking
                     setTimeout(checkModal, 200);
                 }
             };
@@ -403,6 +358,9 @@
         });
     }
 
+    // ========================================
+    // ACTION HANDLERS
+    // ========================================
     async function performAction(action) {
         if (!state.running || state.paused) return false;
 
@@ -411,45 +369,22 @@
 
         switch (action.type) {
             case 'browse':
-                // Just wait and simulate browsing
                 await sleep(action.duration || 2000);
                 break;
 
             case 'scroll':
-                // Scroll to an element
                 const scrollTarget = document.querySelector(action.target);
                 if (scrollTarget) {
-                    simulateMouseMove(scrollTarget);
                     await smoothScrollTo(scrollTarget);
                     await sleep(action.duration || 1500);
                 }
                 break;
 
             case 'click':
-                // Find and click a button
-                let button = null;
-                if (action.target.startsWith('addToCart-')) {
-                    const productId = action.target.replace('addToCart-', '');
-                    button = findAddToCartButton(productId);
-                } else if (action.target.startsWith('buyNow-')) {
-                    const productId = action.target.replace('buyNow-', '');
-                    button = findBuyNowButton(productId);
-                }
-
-                if (button) {
-                    simulateMouseMove(button);
-                    await smoothScrollTo(button);
-                    await sleep(500);
-                    button.click();
-                    await waitForLoadingToComplete();
-                    await waitForModalAndClose();
-                } else {
-                    log(`Button not found: ${action.target}`, 'warn');
-                }
+                await handleClickAction(action.target);
                 break;
 
             case 'function':
-                // Call a specific function
                 await handleFunctionAction(action.action);
                 break;
         }
@@ -459,67 +394,160 @@
         return true;
     }
 
-    function findAddToCartButton(productId) {
-        const buttons = document.querySelectorAll('.btn-primary');
-        for (const btn of buttons) {
-            const onclick = btn.getAttribute('onclick') || '';
-            if (onclick.includes('addToCart') && onclick.includes(productId)) {
-                return btn;
+    async function handleClickAction(target) {
+        // Parse target format: action-mrn
+        const [actionType, mrn] = target.split('-');
+
+        // Find patient name from card
+        let patientName = 'Patient';
+        const patientCards = document.querySelectorAll('.patient-card');
+        for (const card of patientCards) {
+            const mrnEl = card.querySelector('.patient-mrn');
+            if (mrnEl && mrnEl.textContent.includes(mrn)) {
+                const nameEl = card.querySelector('.patient-info h3');
+                if (nameEl) patientName = nameEl.textContent;
+                break;
             }
         }
-        // Fallback: find any Add to Cart button
-        return document.querySelector('.product-card .btn-primary');
+
+        // Find and click appropriate button
+        let button = null;
+
+        switch (actionType) {
+            case 'viewRecord':
+                button = findButtonByAction('viewPatientRecord', mrn);
+                break;
+            case 'orderLab':
+                button = findButtonByAction('orderLabTest', mrn);
+                break;
+            case 'prescribe':
+                button = findButtonByAction('prescribeMedication', mrn);
+                break;
+            case 'labResults':
+                button = findButtonByAction('viewLabResults', mrn);
+                break;
+            case 'discharge':
+                button = findButtonByAction('dischargePatient', mrn);
+                break;
+            case 'triage':
+                button = findButtonByAction('emergencyTriage', mrn);
+                break;
+        }
+
+        if (button) {
+            await smoothScrollTo(button);
+            await sleep(300);
+            button.click();
+            await waitForLoadingToComplete();
+            await waitForModalAndClose();
+        } else {
+            log(`Button not found for ${target}`, 'warn');
+        }
     }
 
-    function findBuyNowButton(productId) {
-        const buttons = document.querySelectorAll('.btn-secondary');
+    function findButtonByAction(actionName, mrn) {
+        const buttons = document.querySelectorAll('button');
         for (const btn of buttons) {
             const onclick = btn.getAttribute('onclick') || '';
-            if (onclick.includes('buyNow') && onclick.includes(productId)) {
+            if (onclick.includes(actionName) && onclick.includes(mrn)) {
                 return btn;
             }
         }
-        // Fallback: find any Buy Now button
-        return document.querySelector('.product-card .btn-secondary');
+        return null;
     }
 
     async function handleFunctionAction(actionName) {
         switch (actionName) {
-            case 'openCart':
-                if (typeof window.showCart === 'function') {
-                    window.showCart();
+            case 'openTriage':
+                if (typeof window.openTriageModal === 'function') {
+                    window.openTriageModal();
                 } else {
-                    document.getElementById('cartSidebar')?.classList.add('active');
-                    document.getElementById('cartOverlay')?.classList.add('active');
+                    const triageModal = document.getElementById('triageModal');
+                    if (triageModal) triageModal.classList.add('active');
                 }
-                await sleep(1500);
+                await sleep(1000);
                 break;
 
-            case 'checkout':
-                // Make sure cart is open and has items
-                if (typeof window.proceedToCheckout === 'function') {
-                    window.proceedToCheckout();
+            case 'submitTriage':
+                // Fill in triage form
+                const triageHR = document.getElementById('triageHR');
+                const triageBP = document.getElementById('triageBP');
+                const triageSpO2 = document.getElementById('triageSpO2');
+                if (triageHR) triageHR.value = '92';
+                if (triageBP) triageBP.value = '138/85';
+                if (triageSpO2) triageSpO2.value = '96';
+
+                if (typeof window.submitTriage === 'function') {
+                    window.submitTriage();
                     await waitForLoadingToComplete();
                     await waitForModalAndClose();
                 }
                 break;
 
-            case 'payment':
-                if (typeof window.proceedToPayment === 'function') {
-                    window.proceedToPayment();
+            case 'openAdmit':
+                if (typeof window.openAdmitModal === 'function') {
+                    window.openAdmitModal();
+                } else {
+                    const admitModal = document.getElementById('admitModal');
+                    if (admitModal) admitModal.classList.add('active');
+                }
+                await sleep(1000);
+                break;
+
+            case 'submitAdmit':
+                // Fill in admit form
+                const admitName = document.getElementById('admitName');
+                const admitComplaint = document.getElementById('admitComplaint');
+                if (admitName) admitName.value = 'Test Patient, Simulated';
+                if (admitComplaint) admitComplaint.value = 'RUM Demo Admission';
+
+                if (typeof window.submitAdmitPatient === 'function') {
+                    window.submitAdmitPatient();
                     await waitForLoadingToComplete();
                     await waitForModalAndClose();
                 }
                 break;
 
-            case 'closeCart':
-                if (typeof window.hideCart === 'function') {
-                    window.hideCart();
+            case 'openSchedule':
+                if (typeof window.openScheduleModal === 'function') {
+                    window.openScheduleModal();
                 } else {
-                    document.getElementById('cartSidebar')?.classList.remove('active');
-                    document.getElementById('cartOverlay')?.classList.remove('active');
+                    const scheduleModal = document.getElementById('scheduleModal');
+                    if (scheduleModal) scheduleModal.classList.add('active');
                 }
-                await sleep(500);
+                await sleep(1000);
+                break;
+
+            case 'submitSchedule':
+                const schedulePatient = document.getElementById('schedulePatient');
+                if (schedulePatient) schedulePatient.value = 'Follow-up Patient';
+
+                if (typeof window.submitSchedule === 'function') {
+                    window.submitSchedule();
+                    await waitForLoadingToComplete();
+                    await waitForModalAndClose();
+                }
+                break;
+
+            case 'submitLabOrder':
+                if (typeof window.submitLabOrder === 'function') {
+                    window.submitLabOrder();
+                    await waitForLoadingToComplete();
+                    await waitForModalAndClose();
+                }
+                break;
+
+            case 'submitPrescription':
+                const rxMed = document.getElementById('rxMedication');
+                const rxDosage = document.getElementById('rxDosage');
+                if (rxMed) rxMed.value = 'Amoxicillin';
+                if (rxDosage) rxDosage.value = '500mg';
+
+                if (typeof window.submitPrescription === 'function') {
+                    window.submitPrescription();
+                    await waitForLoadingToComplete();
+                    await waitForModalAndClose();
+                }
                 break;
         }
     }
@@ -534,56 +562,48 @@
         state.cycleCount = 0;
         state.totalActions = 0;
 
-        log('Simulation started', 'success');
+        log('Hospital workflow simulation started', 'success');
         updateOverlay();
 
-        // Runtime update interval
         const runtimeInterval = setInterval(() => {
             if (state.running) updateOverlay();
         }, 1000);
 
         while (state.running) {
-            // Check if paused
             while (state.paused && state.running) {
                 await sleep(500);
             }
 
             if (!state.running) break;
 
-            // Get current action
             const action = ACTIONS[state.currentActionIndex];
-
-            // Perform action
             const success = await performAction(action);
 
             if (!success) continue;
 
-            // Move to next action
             state.currentActionIndex++;
 
-            // Check if cycle complete
             if (state.currentActionIndex >= ACTIONS.length) {
                 state.currentActionIndex = 0;
                 state.cycleCount++;
-                log(`Cycle ${state.cycleCount} completed`, 'success');
-                setCurrentAction(`Cycle ${state.cycleCount} complete - pausing...`);
+                log(`Shift cycle ${state.cycleCount} completed`, 'success');
+                setCurrentAction(`Cycle ${state.cycleCount} complete - brief break...`);
                 await sleep(CONFIG.loopPauseAfterCycle);
             }
 
-            // Delay between actions
             await sleep(CONFIG.loopDelay);
         }
 
         clearInterval(runtimeInterval);
-        log('Simulation stopped');
-        setCurrentAction('Stopped');
+        log('Hospital workflow simulation stopped');
+        setCurrentAction('Shift ended');
         updateOverlay();
     }
 
     // ========================================
     // PUBLIC API
     // ========================================
-    window.rumSimulator = {
+    window.hospitalSimulator = {
         start: function() {
             if (state.running) return;
             runSimulation();
@@ -604,7 +624,7 @@
         },
 
         toggleMinimize: function() {
-            const overlay = document.getElementById('rum-simulator-overlay');
+            const overlay = document.getElementById('hospital-sim-overlay');
             if (overlay) {
                 overlay.classList.toggle('minimized');
             }
@@ -626,21 +646,20 @@
     // INITIALIZATION
     // ========================================
     function init() {
-        log('RUM Traffic Simulator loaded');
+        log('Hospital Workflow Simulator loaded');
         createOverlay();
 
         if (CONFIG.autoStart) {
-            log('Auto-starting in 3 seconds...');
-            setCurrentAction('Auto-starting in 3 seconds...');
+            log('Auto-starting shift in 3 seconds...');
+            setCurrentAction('Starting shift in 3 seconds...');
             setTimeout(() => {
                 if (CONFIG.enabled) {
-                    window.rumSimulator.start();
+                    window.hospitalSimulator.start();
                 }
             }, 3000);
         }
     }
 
-    // Wait for page to be fully loaded
     if (document.readyState === 'complete') {
         init();
     } else {

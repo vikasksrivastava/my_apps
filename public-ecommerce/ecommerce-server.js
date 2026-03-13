@@ -2,7 +2,8 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// Port priority: command line arg > environment variable > default
+const PORT = process.argv[2] ? parseInt(process.argv[2]) : (process.env.PORT || 3000);
 
 // Configurable delays (in milliseconds)
 const DELAYS = {
@@ -13,7 +14,7 @@ const DELAYS = {
 };
 
 // Middleware to serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 app.use(express.json());
 
 // Logging middleware
@@ -30,17 +31,17 @@ const simulateSlowResponse = (delayMs) => {
 
 // Home page - fast
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Product page - fast
 app.get('/product/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Search - fast
 app.get('/search', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ============================================
@@ -64,7 +65,7 @@ app.get('/add-to-cart', async (req, res) => {
   console.log(`  ⏳ Simulating slow page load (${DELAYS['/add-to-cart']}ms)...`);
   await simulateSlowResponse(DELAYS['/add-to-cart']);
   console.log(`  ✅ Add to cart page loaded`);
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Buy Now - SLOW
@@ -84,7 +85,7 @@ app.get('/buy', async (req, res) => {
   console.log(`  ⏳ Simulating slow page load (${DELAYS['/buy']}ms)...`);
   await simulateSlowResponse(DELAYS['/buy']);
   console.log(`  ✅ Buy page loaded`);
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Payment - SLOW
@@ -104,7 +105,7 @@ app.get('/payment', async (req, res) => {
   console.log(`  ⏳ Simulating slow page load (${DELAYS['/payment']}ms)...`);
   await simulateSlowResponse(DELAYS['/payment']);
   console.log(`  ✅ Payment page loaded`);
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Checkout - SLOW
@@ -124,7 +125,7 @@ app.get('/checkout', async (req, res) => {
   console.log(`  ⏳ Simulating slow page load (${DELAYS['/checkout']}ms)...`);
   await simulateSlowResponse(DELAYS['/checkout']);
   console.log(`  ✅ Checkout page loaded`);
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ============================================

@@ -12,10 +12,15 @@ import socketserver
 import json
 import time
 import os
-from urllib.parse import urlparse, parse_qs
+import sys
+from urllib.parse import urlparse
 from datetime import datetime
 
-PORT = int(os.environ.get('PORT', 3011))
+# Port priority: command line arg > environment variable > default
+if len(sys.argv) > 1:
+    PORT = int(sys.argv[1])
+else:
+    PORT = int(os.environ.get('PORT', 3001))
 
 # Configurable delays (in seconds) for critical healthcare operations
 DELAYS = {
@@ -43,7 +48,7 @@ DELAYS = {
 }
 
 # Directory containing static files
-STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public-hospital')
+STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class HospitalHandler(http.server.SimpleHTTPRequestHandler):
@@ -52,7 +57,7 @@ class HospitalHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=STATIC_DIR, **kwargs)
 
-    def log_message(self, format, *args):
+    def log_message(self, _format, *args):
         """Custom logging with timestamp."""
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] {args[0]}")
@@ -106,7 +111,7 @@ class HospitalHandler(http.server.SimpleHTTPRequestHandler):
 
         # Slow routes (page views)
         if path in DELAYS:
-            delay = self.simulate_slow_response(path)
+            self.simulate_slow_response(path)
             self.send_html_file(os.path.join(STATIC_DIR, 'index.html'))
             return
 
@@ -148,9 +153,9 @@ class HospitalHandler(http.server.SimpleHTTPRequestHandler):
         body = self.rfile.read(content_length) if content_length > 0 else b''
 
         try:
-            data = json.loads(body) if body else {}
+            _data = json.loads(body) if body else {}
         except json.JSONDecodeError:
-            data = {}
+            _data = {}
 
         # Handle slow routes
         if path in DELAYS:

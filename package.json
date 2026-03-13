@@ -2,9 +2,12 @@
   "name": "rum-demo-store",
   "version": "1.0.0",
   "description": "E-commerce demo site for Real User Monitoring demonstrations",
-  "main": "server.js",
+  "main": "public-ecommerce/ecommerce-server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node public-ecommerce/ecommerce-server.js",
+    "start:ecommerce": "node public-ecommerce/ecommerce-server.js",
+    "start:ecommerce:py": "python3 public-ecommerce/ecommerce-server.py",
+    "start:hospital": "python3 public-hospital/hospital-server.py"
   },
   "dependencies": {
     "express": "^4.18.2"

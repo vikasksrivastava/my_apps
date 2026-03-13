@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechMart - Your One-Stop Electronics Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <div class="logo">
+        <span class="logo-icon">🛒</span>
+        <span class="logo-text">TechMart</span>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" placeholder="Search for products, brands and more..." id="searchInput">
+        <button class="search-btn" onclick="handleSearch()">Search</button>
+      </div>
+
+      <nav class="header-nav">
+        <a href="/" class="nav-link">Home</a>
+        <a href="#" class="nav-link" onclick="showCart()">
+          Cart <span class="cart-count" id="cartCount">0</span>
+        </a>
+        <a href="#" class="nav-link">Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Category Navigation -->
+  <nav class="category-nav">
+    <div class="category-container">
+      <a href="#" class="category-link">Electronics</a>
+      <a href="#" class="category-link">Computers</a>
+      <a href="#" class="category-link">Smart Home</a>
+      <a href="#" class="category-link">Audio</a>
+      <a href="#" class="category-link">Accessories</a>
+      <a href="#" class="category-link">Deals</a>
+    </div>
+  </nav>
+
+  <!-- Hero Banner -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Spring Tech Sale</h1>
+      <p>Up to 50% off on selected electronics</p>
+      <button class="hero-btn" onclick="scrollToProducts()">Shop Now</button>
+    </div>
+  </section>
+
+  <!-- RUM Demo Info Banner -->
+  <div class="rum-info-banner">
+    <div class="rum-info-content">
+      <h3>🔍 Real User Monitoring Demo</h3>
+      <p>This site demonstrates RUM metrics. <strong>Business-critical URLs</strong> (Add to Cart, Buy, Payment, Checkout) have a <strong>6-second delay</strong> to simulate slow performance.</p>
+      <div class="rum-metrics">
+        <span class="metric-badge">LCP</span>
+        <span class="metric-badge">FCP</span>
+        <span class="metric-badge">TTFB</span>
+        <span class="metric-badge">INP</span>
+        <span class="metric-badge">CLS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content" id="products">
+    <h2 class="section-title">Featured Products</h2>
+
+    <div class="products-grid">
+      <!-- Product 1 -->
+      <div class="product-card">
+        <div class="product-badge">Best Seller</div>
+        <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=300&fit=crop" alt="MacBook Pro" class="product-image">
+        <div class="product-info">
+          <h3 class="product-title">Pro Laptop 15"</h3>
+          <p class="product-description">M3 Pro chip, 18GB RAM, 512GB SSD</p>
+          <div class="product-rating">
+            ⭐⭐⭐⭐⭐ <span>(2,547 reviews)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">$1,999.00</span>
+            <span class="price-original">$2,499.00</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn btn-primary" onclick="addToCart('laptop-pro', 'Pro Laptop 15\"', 1999)">Add to Cart</button>
+            <button class="btn btn-secondary" onclick="buyNow('laptop-pro', 'Pro Laptop 15\"', 1999)">Buy Now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 2 -->
+      <div class="product-card">
+        <div class="product-badge sale">-30%</div>
+        <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=300&fit=crop" alt="Smart Watch" class="product-image">
+        <div class="product-info">
+          <h3 class="product-title">Smart Watch Ultra</h3>
+          <p class="product-description">GPS, Heart Rate, 7-day battery</p>
+          <div class="product-rating">
+            ⭐⭐⭐⭐☆ <span>(1,823 reviews)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">$349.00</span>
+            <span class="price-original">$499.00</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn btn-primary" onclick="addToCart('watch-ultra', 'Smart Watch Ultra', 349)">Add to Cart</button>
+            <button class="btn btn-secondary" onclick="buyNow('watch-ultra', 'Smart Watch Ultra', 349)">Buy Now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 3 -->
+      <div class="product-card">
+        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop" alt="Wireless Headphones" class="product-image">
+        <div class="product-info">
+          <h3 class="product-title">Wireless Headphones Pro</h3>
+          <p class="product-description">Active Noise Cancellation, 40hr battery</p>
+          <div class="product-rating">
+            ⭐⭐⭐⭐⭐ <span>(4,102 reviews)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">$279.00</span>
+            <span class="price-original">$349.00</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn btn-primary" onclick="addToCart('headphones-pro', 'Wireless Headphones Pro', 279)">Add to Cart</button>
+            <button class="btn btn-secondary" onclick="buyNow('headphones-pro', 'Wireless Headphones Pro', 279)">Buy Now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 4 -->
+      <div class="product-card">
+        <div class="product-badge new">New</div>
+        <img src="https://images.unsplash.com/photo-1585298723682-7115561c51b7?w=400&h=300&fit=crop" alt="Tablet Pro" class="product-image">
+        <div class="product-info">
+          <h3 class="product-title">Tablet Pro 12.9"</h3>
+          <p class="product-description">M2 chip, Liquid Retina XDR display</p>
+          <div class="product-rating">
+            ⭐⭐⭐⭐⭐ <span>(987 reviews)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">$1,099.00</span>
+            <span class="price-original">$1,299.00</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn btn-primary" onclick="addToCart('tablet-pro', 'Tablet Pro 12.9\"', 1099)">Add to Cart</button>
+            <button class="btn btn-secondary" onclick="buyNow('tablet-pro', 'Tablet Pro 12.9\"', 1099)">Buy Now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 5 -->
+      <div class="product-card">
+        <img src="https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400&h=300&fit=crop" alt="Gaming Console" class="product-image">
+        <div class="product-info">
+          <h3 class="product-title">Gaming Console X</h3>
+          <p class="product-description">4K Gaming, 1TB SSD, Wireless Controller</p>
+          <div class="product-rating">
+            ⭐⭐⭐⭐⭐ <span>(3,456 reviews)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">$499.00</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn btn-primary" onclick="addToCart('console-x', 'Gaming Console X', 499)">Add to Cart</button>
+            <button class="btn btn-secondary" onclick="buyNow('console-x', 'Gaming Console X', 499)">Buy Now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 6 -->
+      <div class="product-card">
+        <div class="product-badge sale">-25%</div>
+        <img src="https://images.unsplash.com/photo-1558089687-f282ffcbc126?w=400&h=300&fit=crop" alt="Wireless Earbuds" class="product-image">
+        <div class="product-info">
+          <h3 class="product-title">Wireless Earbuds Pro</h3>
+          <p class="product-description">Spatial Audio, 6hr battery, MagSafe case</p>
+          <div class="product-rating">
+            ⭐⭐⭐⭐☆ <span>(5,234 reviews)</span>
+          </div>
+          <div class="product-price">
+            <span class="price-current">$179.00</span>
+            <span class="price-original">$249.00</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn btn-primary" onclick="addToCart('earbuds-pro', 'Wireless Earbuds Pro', 179)">Add to Cart</button>
+            <button class="btn btn-secondary" onclick="buyNow('earbuds-pro', 'Wireless Earbuds Pro', 179)">Buy Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deals Section -->
+    <section class="deals-section">
+      <h2 class="section-title">Today's Deals</h2>
+      <div class="deals-grid">
+        <div class="deal-card">
+          <img src="https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=300&h=200&fit=crop" alt="Mechanical Keyboard">
+          <div class="deal-info">
+            <h4>Mechanical Keyboard RGB</h4>
+            <p class="deal-price">$89.99 <span>$129.99</span></p>
+            <div class="deal-timer">Ends in: 05:32:17</div>
+            <button class="btn btn-small" onclick="addToCart('keyboard-rgb', 'Mechanical Keyboard RGB', 89.99)">Add to Cart</button>
+          </div>
+        </div>
+        <div class="deal-card">
+          <img src="https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&h=200&fit=crop" alt="Webcam HD">
+          <div class="deal-info">
+            <h4>4K Webcam Pro</h4>
+            <p class="deal-price">$79.99 <span>$149.99</span></p>
+            <div class="deal-timer">Ends in: 03:15:42</div>
+            <button class="btn btn-small" onclick="addToCart('webcam-4k', '4K Webcam Pro', 79.99)">Add to Cart</button>
+          </div>
+        </div>
+        <div class="deal-card">
+          <img src="https://images.unsplash.com/photo-1625723044792-44de16ccb4e9?w=300&h=200&fit=crop" alt="USB-C Hub">
+          <div class="deal-info">
+            <h4>USB-C Hub 10-in-1</h4>
+            <p class="deal-price">$49.99 <span>$79.99</span></p>
+            <div class="deal-timer">Ends in: 08:45:23</div>
+            <button class="btn btn-small" onclick="addToCart('usbc-hub', 'USB-C Hub 10-in-1', 49.99)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cart Sidebar -->
+  <div class="cart-overlay" id="cartOverlay" onclick="hideCart()"></div>
+  <aside class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h3>Shopping Cart</h3>
+      <button class="close-btn" onclick="hideCart()">&times;</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <p class="empty-cart">Your cart is empty</p>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total:</span>
+        <span id="cartTotal">$0.00</span>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="proceedToCheckout()">Proceed to Checkout</button>
+      <button class="btn btn-secondary btn-full" onclick="proceedToPayment()">Go to Payment</button>
+    </div>
+  </aside>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p id="loadingMessage">Processing...</p>
+      <div class="loading-timer">
+        <span>Elapsed: </span>
+        <span id="loadingTimer">0.0s</span>
+      </div>
+      <p class="loading-note">This delay is intentional to demonstrate RUM metrics</p>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-content">
+      <div class="modal-icon success">✓</div>
+      <h3 id="modalTitle">Success!</h3>
+      <p id="modalMessage">Operation completed successfully.</p>
+      <p class="modal-timing" id="modalTiming"></p>
+      <button class="btn btn-primary" onclick="closeModal()">Continue Shopping</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section">
+        <h4>TechMart</h4>
+        <p>Your one-stop shop for all things tech. Quality products, great prices, fast shipping.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Customer Service</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Track Order</a></li>
+          <li><a href="#">Returns</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Affiliates</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="#">Facebook</a></li>
+          <li><a href="#">Twitter</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">YouTube</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 TechMart. All rights reserved. | RUM Demo Site</p>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

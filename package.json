@@ -1,0 +1,12 @@
+{
+  "name": "rum-demo-store",
+  "version": "1.0.0",
+  "description": "E-commerce demo site for Real User Monitoring demonstrations",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

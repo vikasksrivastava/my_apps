@@ -15,7 +15,7 @@ import os
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 
-PORT = int(os.environ.get('PORT', 3001))
+PORT = int(os.environ.get('PORT', 3011))
 
 # Configurable delays (in seconds) for critical healthcare operations
 DELAYS = {

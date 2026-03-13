@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedCare Hospital - Clinical Workstation</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Header Bar -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">🏥</span>
+        <span class="logo-text">MedCare</span>
+        <span class="logo-subtitle">Clinical Workstation</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="search-bar">
+        <input type="text" placeholder="Search patients by name, MRN, or DOB..." id="patientSearch">
+        <button class="search-btn">Search</button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="header-alerts">
+        <button class="alert-btn critical" onclick="handleCodeBlue()">
+          <span class="alert-icon">🚨</span> Code Blue
+        </button>
+      </div>
+      <div class="user-info">
+        <span class="user-name">Dr. Sarah Johnson</span>
+        <span class="user-role">Emergency Medicine</span>
+      </div>
+      <button class="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="main-nav">
+    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+    <button class="nav-tab" data-tab="patients">Patient List</button>
+    <button class="nav-tab" data-tab="er">Emergency Room</button>
+    <button class="nav-tab" data-tab="orders">Orders</button>
+    <button class="nav-tab" data-tab="schedule">Schedule</button>
+  </nav>
+
+  <!-- RUM Demo Info Banner -->
+  <div class="rum-info-banner">
+    <div class="rum-info-content">
+      <h3>🔍 Real User Monitoring Demo - Hospital EHR System</h3>
+      <p><strong>Critical healthcare operations</strong> (Admit, Discharge, Orders, Prescriptions, Triage) have a <strong>6-second delay</strong> to simulate performance issues.</p>
+      <div class="rum-metrics">
+        <span class="metric-badge">TTFB</span>
+        <span class="metric-badge">LCP</span>
+        <span class="metric-badge">INP</span>
+        <span class="metric-badge">FCP</span>
+        <span class="metric-badge">CLS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Left Sidebar - Quick Actions -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Quick Actions</h3>
+        <button class="action-btn primary" onclick="openAdmitModal()">
+          <span>➕</span> Admit Patient
+        </button>
+        <button class="action-btn" onclick="openTriageModal()">
+          <span>🚑</span> ER Triage
+        </button>
+        <button class="action-btn" onclick="openLabOrderModal()">
+          <span>🧪</span> Order Lab Test
+        </button>
+        <button class="action-btn" onclick="openPrescribeModal()">
+          <span>💊</span> Prescribe Medication
+        </button>
+        <button class="action-btn" onclick="openScheduleModal()">
+          <span>📅</span> Schedule Appointment
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Department Stats</h3>
+        <div class="stat-item">
+          <span class="stat-label">ER Patients</span>
+          <span class="stat-value critical">23</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">ICU Beds Used</span>
+          <span class="stat-value warning">12/15</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Pending Discharges</span>
+          <span class="stat-value">8</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Lab Results Pending</span>
+          <span class="stat-value warning">34</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Dashboard Area -->
+    <section class="dashboard">
+      <h2>My Patients</h2>
+
+      <!-- Patient Cards Grid -->
+      <div class="patients-grid">
+        <!-- Patient 1 - Critical -->
+        <div class="patient-card critical">
+          <div class="patient-header">
+            <div class="patient-status critical">CRITICAL</div>
+            <span class="patient-room">ICU-201</span>
+          </div>
+          <div class="patient-info">
+            <h3>Robert Martinez</h3>
+            <p class="patient-mrn">MRN: 10045892</p>
+            <p class="patient-details">68 y/o Male | DOB: 03/15/1957</p>
+            <p class="patient-diagnosis">Dx: Acute MI, CHF, Type 2 DM</p>
+          </div>
+          <div class="patient-vitals">
+            <span class="vital">HR: 112</span>
+            <span class="vital warning">BP: 158/95</span>
+            <span class="vital">SpO2: 94%</span>
+          </div>
+          <div class="patient-actions">
+            <button class="btn btn-small" onclick="viewPatientRecord('10045892', 'Robert Martinez')">View Record</button>
+            <button class="btn btn-small" onclick="orderLabTest('10045892', 'Robert Martinez')">Order Labs</button>
+            <button class="btn btn-small" onclick="prescribeMedication('10045892', 'Robert Martinez')">Prescribe</button>
+          </div>
+        </div>
+
+        <!-- Patient 2 - Stable -->
+        <div class="patient-card stable">
+          <div class="patient-header">
+            <div class="patient-status stable">STABLE</div>
+            <span class="patient-room">Room 412</span>
+          </div>
+          <div class="patient-info">
+            <h3>Emily Chen</h3>
+            <p class="patient-mrn">MRN: 10052341</p>
+            <p class="patient-details">34 y/o Female | DOB: 08/22/1991</p>
+            <p class="patient-diagnosis">Dx: Post-op appendectomy (Day 2)</p>
+          </div>
+          <div class="patient-vitals">
+            <span class="vital">HR: 78</span>
+            <span class="vital">BP: 118/72</span>
+            <span class="vital">SpO2: 99%</span>
+          </div>
+          <div class="patient-actions">
+            <button class="btn btn-small" onclick="viewPatientRecord('10052341', 'Emily Chen')">View Record</button>
+            <button class="btn btn-small" onclick="viewLabResults('10052341', 'Emily Chen')">Lab Results</button>
+            <button class="btn btn-small primary" onclick="dischargePatient('10052341', 'Emily Chen')">Discharge</button>
+          </div>
+        </div>
+
+        <!-- Patient 3 - Warning -->
+        <div class="patient-card warning">
+          <div class="patient-header">
+            <div class="patient-status warning">MONITORING</div>
+            <span class="patient-room">ER-Bay 7</span>
+          </div>
+          <div class="patient-info">
+            <h3>James Wilson</h3>
+            <p class="patient-mrn">MRN: 10061234</p>
+            <p class="patient-details">52 y/o Male | DOB: 11/30/1973</p>
+            <p class="patient-diagnosis">Dx: Chest pain, r/o ACS</p>
+          </div>
+          <div class="patient-vitals">
+            <span class="vital warning">HR: 98</span>
+            <span class="vital">BP: 142/88</span>
+            <span class="vital">SpO2: 97%</span>
+          </div>
+          <div class="patient-actions">
+            <button class="btn btn-small" onclick="viewPatientRecord('10061234', 'James Wilson')">View Record</button>
+            <button class="btn btn-small" onclick="orderLabTest('10061234', 'James Wilson')">Order Labs</button>
+            <button class="btn btn-small" onclick="emergencyTriage('10061234', 'James Wilson')">Update Triage</button>
+          </div>
+        </div>
+
+        <!-- Patient 4 - Stable -->
+        <div class="patient-card stable">
+          <div class="patient-header">
+            <div class="patient-status stable">STABLE</div>
+            <span class="patient-room">Room 308</span>
+          </div>
+          <div class="patient-info">
+            <h3>Maria Garcia</h3>
+            <p class="patient-mrn">MRN: 10048721</p>
+            <p class="patient-details">45 y/o Female | DOB: 05/12/1980</p>
+            <p class="patient-diagnosis">Dx: Community-acquired pneumonia</p>
+          </div>
+          <div class="patient-vitals">
+            <span class="vital">HR: 82</span>
+            <span class="vital">BP: 124/78</span>
+            <span class="vital">SpO2: 96%</span>
+          </div>
+          <div class="patient-actions">
+            <button class="btn btn-small" onclick="viewPatientRecord('10048721', 'Maria Garcia')">View Record</button>
+            <button class="btn btn-small" onclick="prescribeMedication('10048721', 'Maria Garcia')">Prescribe</button>
+            <button class="btn btn-small" onclick="updatePatientRecord('10048721', 'Maria Garcia')">Update Record</button>
+          </div>
+        </div>
+
+        <!-- Patient 5 - Critical -->
+        <div class="patient-card critical">
+          <div class="patient-header">
+            <div class="patient-status critical">CRITICAL</div>
+            <span class="patient-room">ICU-205</span>
+          </div>
+          <div class="patient-info">
+            <h3>David Thompson</h3>
+            <p class="patient-mrn">MRN: 10033456</p>
+            <p class="patient-details">71 y/o Male | DOB: 09/08/1954</p>
+            <p class="patient-diagnosis">Dx: Sepsis, ARDS, CKD Stage 4</p>
+          </div>
+          <div class="patient-vitals">
+            <span class="vital critical">HR: 124</span>
+            <span class="vital warning">BP: 88/52</span>
+            <span class="vital critical">SpO2: 88%</span>
+          </div>
+          <div class="patient-actions">
+            <button class="btn btn-small" onclick="viewPatientRecord('10033456', 'David Thompson')">View Record</button>
+            <button class="btn btn-small" onclick="orderLabTest('10033456', 'David Thompson')">Order Labs</button>
+            <button class="btn btn-small critical" onclick="handleCodeBlue()">Code Blue</button>
+          </div>
+        </div>
+
+        <!-- Patient 6 - Pending Discharge -->
+        <div class="patient-card discharge">
+          <div class="patient-header">
+            <div class="patient-status discharge">DISCHARGE READY</div>
+            <span class="patient-room">Room 215</span>
+          </div>
+          <div class="patient-info">
+            <h3>Susan Anderson</h3>
+            <p class="patient-mrn">MRN: 10057890</p>
+            <p class="patient-details">28 y/o Female | DOB: 02/14/1997</p>
+            <p class="patient-diagnosis">Dx: Observation - resolved migraine</p>
+          </div>
+          <div class="patient-vitals">
+            <span class="vital">HR: 72</span>
+            <span class="vital">BP: 112/68</span>
+            <span class="vital">SpO2: 100%</span>
+          </div>
+          <div class="patient-actions">
+            <button class="btn btn-small" onclick="viewPatientRecord('10057890', 'Susan Anderson')">View Record</button>
+            <button class="btn btn-small" onclick="prescribeMedication('10057890', 'Susan Anderson')">Prescribe</button>
+            <button class="btn btn-small primary" onclick="dischargePatient('10057890', 'Susan Anderson')">Discharge</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Orders Section -->
+      <section class="pending-section">
+        <h2>Pending Lab Results</h2>
+        <div class="pending-grid">
+          <div class="pending-item">
+            <div class="pending-info">
+              <strong>Robert Martinez</strong> - Troponin I, BNP, CBC
+              <span class="pending-time">Ordered 45 min ago</span>
+            </div>
+            <button class="btn btn-small" onclick="viewLabResults('10045892', 'Robert Martinez')">View Results</button>
+          </div>
+          <div class="pending-item">
+            <div class="pending-info">
+              <strong>James Wilson</strong> - Troponin I, ECG, CMP
+              <span class="pending-time">Ordered 30 min ago</span>
+            </div>
+            <button class="btn btn-small" onclick="viewLabResults('10061234', 'James Wilson')">View Results</button>
+          </div>
+          <div class="pending-item">
+            <div class="pending-info">
+              <strong>David Thompson</strong> - Blood Culture, Lactate, ABG
+              <span class="pending-time">Ordered 1 hour ago</span>
+            </div>
+            <button class="btn btn-small" onclick="viewLabResults('10033456', 'David Thompson')">View Results</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Upcoming Appointments -->
+      <section class="appointments-section">
+        <h2>Today's Schedule</h2>
+        <div class="appointments-list">
+          <div class="appointment-item">
+            <span class="appt-time">10:30 AM</span>
+            <span class="appt-patient">Follow-up: John Peters (Post-MI)</span>
+            <button class="btn btn-small" onclick="scheduleSurgery('10099001', 'John Peters')">Schedule Surgery</button>
+          </div>
+          <div class="appointment-item">
+            <span class="appt-time">11:00 AM</span>
+            <span class="appt-patient">New Patient: Lisa Brown (Referral)</span>
+            <button class="btn btn-small" onclick="openAdmitModal()">Admit</button>
+          </div>
+          <div class="appointment-item">
+            <span class="appt-time">2:00 PM</span>
+            <span class="appt-patient">Rounds: ICU Patients</span>
+            <span class="appt-badge">4 patients</span>
+          </div>
+          <div class="appointment-item">
+            <span class="appt-time">4:30 PM</span>
+            <span class="appt-patient">Discharge Planning: Ward 3</span>
+            <span class="appt-badge">3 patients</span>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <!-- Admit Patient Modal -->
+  <div class="modal-overlay" id="admitModal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3>➕ Admit New Patient</h3>
+        <button class="close-btn" onclick="closeModal('admitModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Patient Name</label>
+            <input type="text" id="admitName" placeholder="Last, First">
+          </div>
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" id="admitDOB">
+          </div>
+          <div class="form-group">
+            <label>Chief Complaint</label>
+            <input type="text" id="admitComplaint" placeholder="Reason for admission">
+          </div>
+          <div class="form-group">
+            <label>Admitting Diagnosis</label>
+            <input type="text" id="admitDiagnosis" placeholder="ICD-10 or description">
+          </div>
+          <div class="form-group">
+            <label>Assigned Unit</label>
+            <select id="admitUnit">
+              <option>General Medicine</option>
+              <option>ICU</option>
+              <option>Cardiac Care</option>
+              <option>Surgical</option>
+              <option>Pediatrics</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="admitPriority">
+              <option>Routine</option>
+              <option>Urgent</option>
+              <option>Emergency</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('admitModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAdmitPatient()">Admit Patient</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lab Order Modal -->
+  <div class="modal-overlay" id="labOrderModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🧪 Order Lab Test</h3>
+        <button class="close-btn" onclick="closeModal('labOrderModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-patient-info" id="labPatientInfo">Patient: --</p>
+        <div class="form-group">
+          <label>Select Tests</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" checked> Complete Blood Count (CBC)</label>
+            <label><input type="checkbox" checked> Comprehensive Metabolic Panel (CMP)</label>
+            <label><input type="checkbox"> Troponin I</label>
+            <label><input type="checkbox"> BNP</label>
+            <label><input type="checkbox"> Lipid Panel</label>
+            <label><input type="checkbox"> Urinalysis</label>
+            <label><input type="checkbox"> Blood Culture</label>
+            <label><input type="checkbox"> ABG</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="labPriority">
+            <option>Routine</option>
+            <option>STAT</option>
+            <option>Timed</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('labOrderModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitLabOrder()">Submit Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prescribe Medication Modal -->
+  <div class="modal-overlay" id="prescribeModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>💊 Prescribe Medication</h3>
+        <button class="close-btn" onclick="closeModal('prescribeModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-patient-info" id="prescribePatientInfo">Patient: --</p>
+        <div class="form-group">
+          <label>Medication</label>
+          <input type="text" id="rxMedication" placeholder="Drug name">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Dosage</label>
+            <input type="text" id="rxDosage" placeholder="e.g., 500mg">
+          </div>
+          <div class="form-group">
+            <label>Route</label>
+            <select id="rxRoute">
+              <option>PO (Oral)</option>
+              <option>IV</option>
+              <option>IM</option>
+              <option>SC</option>
+              <option>Topical</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Frequency</label>
+          <select id="rxFrequency">
+            <option>Once daily</option>
+            <option>Twice daily (BID)</option>
+            <option>Three times daily (TID)</option>
+            <option>Four times daily (QID)</option>
+            <option>Every 6 hours</option>
+            <option>Every 8 hours</option>
+            <option>PRN (As needed)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Duration</label>
+          <input type="text" id="rxDuration" placeholder="e.g., 7 days">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('prescribeModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitPrescription()">Prescribe</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Triage Modal -->
+  <div class="modal-overlay" id="triageModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🚑 Emergency Triage Assessment</h3>
+        <button class="close-btn" onclick="closeModal('triageModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-patient-info" id="triagePatientInfo">Patient: --</p>
+        <div class="form-group">
+          <label>Chief Complaint</label>
+          <input type="text" id="triageComplaint" placeholder="Primary complaint">
+        </div>
+        <div class="form-group">
+          <label>Triage Level (ESI)</label>
+          <select id="triageLevel">
+            <option value="1">ESI-1: Resuscitation (Immediate)</option>
+            <option value="2">ESI-2: Emergent (10 minutes)</option>
+            <option value="3" selected>ESI-3: Urgent (30 minutes)</option>
+            <option value="4">ESI-4: Less Urgent (60 minutes)</option>
+            <option value="5">ESI-5: Non-Urgent (120 minutes)</option>
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Heart Rate</label>
+            <input type="text" id="triageHR" placeholder="bpm">
+          </div>
+          <div class="form-group">
+            <label>Blood Pressure</label>
+            <input type="text" id="triageBP" placeholder="sys/dia">
+          </div>
+          <div class="form-group">
+            <label>SpO2</label>
+            <input type="text" id="triageSpO2" placeholder="%">
+          </div>
+          <div class="form-group">
+            <label>Temperature</label>
+            <input type="text" id="triageTemp" placeholder="°F">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('triageModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitTriage()">Complete Triage</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Modal -->
+  <div class="modal-overlay" id="scheduleModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📅 Schedule Appointment</h3>
+        <button class="close-btn" onclick="closeModal('scheduleModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Patient</label>
+          <input type="text" id="schedulePatient" placeholder="Patient name or MRN">
+        </div>
+        <div class="form-group">
+          <label>Appointment Type</label>
+          <select id="scheduleType">
+            <option>Follow-up Visit</option>
+            <option>New Patient Consult</option>
+            <option>Procedure</option>
+            <option>Pre-operative</option>
+            <option>Post-operative</option>
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="scheduleDate">
+          </div>
+          <div class="form-group">
+            <label>Time</label>
+            <input type="time" id="scheduleTime">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Provider</label>
+          <select id="scheduleProvider">
+            <option>Dr. Sarah Johnson</option>
+            <option>Dr. Michael Lee</option>
+            <option>Dr. Emily Brown</option>
+            <option>Dr. James Smith</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('scheduleModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSchedule()">Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p id="loadingMessage">Processing...</p>
+      <div class="loading-timer">
+        <span>Elapsed: </span>
+        <span id="loadingTimer">0.0s</span>
+      </div>
+      <p class="loading-note">This delay simulates real EHR system latency for RUM demo</p>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-content success">
+      <div class="modal-icon success">✓</div>
+      <h3 id="successTitle">Success!</h3>
+      <p id="successMessage">Operation completed successfully.</p>
+      <p class="modal-timing" id="successTiming"></p>
+      <button class="btn btn-primary" onclick="closeModal('successModal')">Continue</button>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

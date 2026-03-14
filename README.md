@@ -54,20 +54,40 @@ npm run start:ecommerce:py     # E-commerce (Python) on port 3000
 npm run start:hospital         # Hospital (Python) on port 3001
 ```
 
-## Custom Port
+## Configuration
 
-All servers support custom ports via command line:
+### Custom Port and Delay
+
+All servers support custom port and delay via command line arguments:
 
 ```bash
-# Node.js
-node public-ecommerce/ecommerce-server.js 8080
+# Usage: server [port] [delay_in_seconds/ms]
 
-# Python
-python3 public-ecommerce/ecommerce-server.py 8080
-python3 public-hospital/hospital-server.py 8081
+# Python servers (delay in seconds)
+python3 public-ecommerce/ecommerce-server.py 3000 6      # port=3000, delay=6s
+python3 public-ecommerce/ecommerce-server.py 8080 3      # port=8080, delay=3s
+python3 public-hospital/hospital-server.py 3001 10       # port=3001, delay=10s
+
+# Node.js server (delay in milliseconds)
+node public-ecommerce/ecommerce-server.js 3000 6000      # port=3000, delay=6000ms
+node public-ecommerce/ecommerce-server.js 8080 3000      # port=8080, delay=3000ms
 ```
 
-## Slow Routes (6 second delay)
+### Environment Variables
+
+You can also use environment variables:
+
+```bash
+# Python
+PORT=3000 DELAY=6 python3 public-ecommerce/ecommerce-server.py
+
+# Node.js
+PORT=3000 DELAY=6000 node public-ecommerce/ecommerce-server.js
+```
+
+**Priority:** Command line args > Environment variables > Defaults
+
+## Slow Routes (configurable delay, default 6 seconds)
 
 ### E-commerce
 | Route | Description |
@@ -131,3 +151,9 @@ hospitalSimulator.setConfig('loopDelay', 3000)
 - **FCP** (First Contentful Paint)
 - **INP** (Interaction to Next Paint) - Response to clicks
 - **CLS** (Cumulative Layout Shift)
+
+## Disclaimer
+
+These demo applications are created by **Vikas Srivastava** for demonstration and educational purposes only. "TechMart" and "MedCare Hospital" are fictional entities. All product names, patient data, medical records, prices, and other information displayed are entirely fictitious. Any resemblance to actual companies, products, persons, or medical institutions is purely coincidental.
+
+**Copyright © 2024 Vikas Srivastava. All rights reserved.**

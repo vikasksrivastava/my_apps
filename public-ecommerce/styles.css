@@ -10,6 +10,7 @@ body {
   background-color: #f5f5f5;
   color: #333;
   line-height: 1.6;
+  padding-bottom: 2.5rem;
 }
 
 /* Header Styles */
@@ -718,11 +719,39 @@ body {
   color: #ff9f1c;
 }
 
-.footer-bottom {
-  text-align: center;
-  padding-top: 2rem;
+.footer-disclaimer {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
   margin-top: 2rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-disclaimer p {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: #a0a0a0;
+  text-align: center;
+}
+
+.footer-disclaimer strong {
+  color: #ff9f1c;
+}
+
+.footer-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0.4rem 1rem;
+  background: #1a1a2e;
   border-top: 1px solid rgba(255,255,255,0.1);
+  z-index: 100;
+  font-size: 0.8rem;
 }
 
 /* Responsive */

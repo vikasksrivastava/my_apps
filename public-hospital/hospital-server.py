@@ -3,8 +3,18 @@
 MedCare Hospital - Internal Platform Server
 A hospital EHR/workflow simulation server with intentionally slow routes for RUM demos.
 
-Usage: python3 hospital-server.py [port]
-Default port: 3001
+Usage: python3 hospital-server.py [port] [delay]
+  port  - Server port (default: 3001)
+  delay - Delay in seconds for slow routes (default: 6.0)
+
+Examples:
+  python3 hospital-server.py              # port=3001, delay=6s
+  python3 hospital-server.py 8080         # port=8080, delay=6s
+  python3 hospital-server.py 8080 3       # port=8080, delay=3s
+
+Environment variables:
+  PORT  - Server port
+  DELAY - Delay in seconds
 """
 
 import http.server
@@ -22,29 +32,35 @@ if len(sys.argv) > 1:
 else:
     PORT = int(os.environ.get('PORT', 3001))
 
+# Delay priority: command line arg > environment variable > default
+if len(sys.argv) > 2:
+    DEFAULT_DELAY = float(sys.argv[2])
+else:
+    DEFAULT_DELAY = float(os.environ.get('DELAY', 6.0))
+
 # Configurable delays (in seconds) for critical healthcare operations
 DELAYS = {
     # Patient Management - Critical
-    '/admit-patient': 6.0,
-    '/discharge-patient': 6.0,
-    '/transfer-patient': 6.0,
+    '/admit-patient': 19,
+    '/discharge-patient': DEFAULT_DELAY,
+    '/transfer-patient': DEFAULT_DELAY,
 
     # Medical Records - Critical
-    '/view-patient-record': 6.0,
-    '/update-patient-record': 6.0,
+    '/view-patient-record': DEFAULT_DELAY,
+    '/update-patient-record': DEFAULT_DELAY,
 
     # Orders & Prescriptions - Critical
-    '/order-lab-test': 6.0,
-    '/prescribe-medication': 6.0,
-    '/view-lab-results': 6.0,
+    '/order-lab-test': DEFAULT_DELAY,
+    '/prescribe-medication': DEFAULT_DELAY,
+    '/view-lab-results': DEFAULT_DELAY,
 
     # Emergency & Triage - Critical
-    '/emergency-triage': 6.0,
-    '/code-blue': 6.0,
+    '/emergency-triage': DEFAULT_DELAY,
+    '/code-blue': DEFAULT_DELAY,
 
     # Scheduling - Important
-    '/schedule-appointment': 6.0,
-    '/schedule-surgery': 6.0,
+    '/schedule-appointment': DEFAULT_DELAY,
+    '/schedule-surgery': DEFAULT_DELAY,
 }
 
 # Directory containing static files
@@ -213,7 +229,7 @@ def print_banner():
 ║    GET  /api/dashboard    - Dashboard stats                           ║
 ║    GET  /health           - Health check                              ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  SLOW ROUTES (6000ms delay - Critical Healthcare Operations):         ║
+║  SLOW ROUTES ({int(DEFAULT_DELAY * 1000)}ms delay - Critical Healthcare Operations):        ║
 ║                                                                       ║
 ║  Patient Management:                                                  ║
 ║    POST /admit-patient       - Admit new patient                      ║

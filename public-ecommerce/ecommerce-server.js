@@ -2,15 +2,19 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
+
 // Port priority: command line arg > environment variable > default
 const PORT = process.argv[2] ? parseInt(process.argv[2]) : (process.env.PORT || 3000);
 
+// Delay priority: command line arg > environment variable > default (in milliseconds)
+const DEFAULT_DELAY = process.argv[3] ? parseInt(process.argv[3]) : (process.env.DELAY || 6000);
+
 // Configurable delays (in milliseconds)
 const DELAYS = {
-  '/add-to-cart': 6000,
-  '/buy': 6000,
-  '/payment': 6000,
-  '/checkout': 6000
+  '/add-to-cart': DEFAULT_DELAY,
+  '/buy': DEFAULT_DELAY,
+  '/payment': DEFAULT_DELAY,
+  '/checkout': DEFAULT_DELAY
 };
 
 // Middleware to serve static files

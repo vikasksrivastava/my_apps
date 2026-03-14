@@ -3,8 +3,18 @@
 TechMart - RUM Demo E-commerce Server
 A simple HTTP server with intentionally slow routes for Real User Monitoring demos.
 
-Usage: python3 ecommerce-server.py [port]
-Default port: 3000
+Usage: python3 ecommerce-server.py [port] [delay]
+  port  - Server port (default: 3000)
+  delay - Delay in seconds for slow routes (default: 6.0)
+
+Examples:
+  python3 ecommerce-server.py              # port=3000, delay=6s
+  python3 ecommerce-server.py 8080         # port=8080, delay=6s
+  python3 ecommerce-server.py 8080 3       # port=8080, delay=3s
+
+Environment variables:
+  PORT  - Server port
+  DELAY - Delay in seconds
 """
 
 import http.server
@@ -22,12 +32,18 @@ if len(sys.argv) > 1:
 else:
     PORT = int(os.environ.get('PORT', 3000))
 
+# Delay priority: command line arg > environment variable > default
+if len(sys.argv) > 2:
+    DEFAULT_DELAY = float(sys.argv[2])
+else:
+    DEFAULT_DELAY = float(os.environ.get('DELAY', 6.0))
+
 # Configurable delays (in seconds)
 DELAYS = {
-    '/add-to-cart': 6.0,
-    '/buy': 6.0,
-    '/payment': 6.0,
-    '/checkout': 6.0,
+    '/add-to-cart': DEFAULT_DELAY,
+    '/buy': DEFAULT_DELAY,
+    '/payment': DEFAULT_DELAY,
+    '/checkout': DEFAULT_DELAY,
 }
 
 # Directory containing static files
@@ -179,7 +195,7 @@ def print_banner():
 ║    GET  /search        - Search results                       ║
 ║    GET  /health        - Health check                         ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  SLOW ROUTES (6000ms delay - for RUM demo):                   ║
+║  SLOW ROUTES ({int(DEFAULT_DELAY * 1000)}ms delay - for RUM demo):                   ║
 ║    GET/POST  /add-to-cart  - Add item to cart                 ║
 ║    GET/POST  /buy          - Buy now                          ║
 ║    GET/POST  /payment      - Payment processing               ║

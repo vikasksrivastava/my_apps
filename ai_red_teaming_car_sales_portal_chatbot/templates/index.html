@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Car Sales Portal Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 980px;
+      margin: 32px auto;
+      padding: 0 16px;
+      background: #f8fafc;
+    }
+    h1 {
+      margin-bottom: 6px;
+    }
+    .sub {
+      color: #475569;
+      margin-bottom: 18px;
+    }
+    #chat {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      min-height: 480px;
+      max-height: 480px;
+      overflow-y: auto;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .msg {
+      margin: 12px 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+    .user { background: #dbeafe; }
+    .assistant { background: #e2e8f0; }
+    .controls {
+      display: flex;
+      gap: 8px;
+    }
+    input {
+      flex: 1;
+      font-size: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+    }
+    button {
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .examples {
+      margin-top: 14px;
+      color: #334155;
+      font-size: 14px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      margin: 5px 6px 0 0;
+      background: #eef2ff;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Car Sales Portal Chatbot</h1>
+  <div class="sub">Local web chatbot with Ollama, RAG, and MCP tools for inventory, payments, trade-ins, hours, warranties, and test drives.</div>
+
+  <div id="chat"></div>
+
+  <div class="controls">
+    <input id="message" placeholder="Ask about inventory, financing, trade-ins, or appointments..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <div class="examples">
+    Try:
+    <span class="pill" onclick="fillPrompt(`Show me SUVs under $35,000 with AWD`)">Show me SUVs under $35,000 with AWD</span>
+    <span class="pill" onclick="fillPrompt(`Compare CS1002 and CS1005`)">Compare CS1002 and CS1005</span>
+    <span class="pill" onclick="fillPrompt(`Estimate payment for CS1003 with $5000 down for 72 months`)">Estimate payment for CS1003 with $5000 down for 72 months</span>
+    <span class="pill" onclick="fillPrompt(`I want to schedule a test drive for CS1001 next Tuesday`)">Schedule a test drive</span>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("message");
+
+    function add(role, text) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.textContent = `${role === "user" ? "You" : "Assistant"}: ${text}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function fillPrompt(text) {
+      input.value = text;
+      input.focus();
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      add("user", text);
+      input.value = "";
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        add("assistant", data.reply || "(no reply)");
+      } catch (e) {
+        add("assistant", "Error contacting server.");
+      }
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>

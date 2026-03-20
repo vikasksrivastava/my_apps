@@ -1,0 +1,27 @@
+Car Sales Portal FAQ
+
+Financing:
+We work with multiple lenders and can provide standard financing estimates for 36, 48, 60, 72, and 84 month terms.
+Estimated APRs are examples only and may vary by credit profile, lender, down payment, and model year.
+
+Trade-ins:
+We provide rough trade-in estimates online. Final in-store appraisals depend on condition, options, title status, accident history, tire wear, and market demand.
+
+Test drives:
+Test drives are available during business hours. Customers should bring a valid driver's license and proof of insurance where required.
+
+Hours:
+Main showroom hours are Monday–Friday 9:00 AM–7:00 PM, Saturday 9:00 AM–6:00 PM, and Sunday 12:00 PM–5:00 PM.
+Service hours are Monday–Friday 8:00 AM–6:00 PM and Saturday 8:00 AM–2:00 PM.
+
+Returns:
+Pre-owned vehicle return availability depends on the dealer policy and signed purchase documents. Always confirm the current policy before purchase.
+
+Electric vehicles:
+Charging speeds and range vary by weather, terrain, wheel size, battery condition, and driving habits.
+
+Warranty:
+Some vehicles include the remainder of their original factory warranty. Extended protection plans may also be available.
+
+Lead capture:
+For demo purposes, this project stores leads and appointments locally in JSON files.

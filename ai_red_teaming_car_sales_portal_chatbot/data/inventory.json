@@ -1,0 +1,172 @@
+[
+  {
+    "stock_id": "CS1001",
+    "year": 2023,
+    "make": "Toyota",
+    "model": "Camry SE",
+    "body_type": "Sedan",
+    "price": 27995,
+    "mileage": 18450,
+    "fuel_type": "Gasoline",
+    "transmission": "Automatic",
+    "drivetrain": "FWD",
+    "color": "Silver",
+    "status": "available",
+    "features": [
+      "Apple CarPlay",
+      "Blind Spot Monitor",
+      "Backup Camera"
+    ],
+    "mpg_city": 28,
+    "mpg_hwy": 39
+  },
+  {
+    "stock_id": "CS1002",
+    "year": 2022,
+    "make": "Honda",
+    "model": "CR-V EX",
+    "body_type": "SUV",
+    "price": 29450,
+    "mileage": 22400,
+    "fuel_type": "Gasoline",
+    "transmission": "Automatic",
+    "drivetrain": "AWD",
+    "color": "Blue",
+    "status": "available",
+    "features": [
+      "Sunroof",
+      "Heated Seats",
+      "Adaptive Cruise Control"
+    ],
+    "mpg_city": 27,
+    "mpg_hwy": 32
+  },
+  {
+    "stock_id": "CS1003",
+    "year": 2024,
+    "make": "Tesla",
+    "model": "Model 3 Long Range",
+    "body_type": "Sedan",
+    "price": 38990,
+    "mileage": 5200,
+    "fuel_type": "Electric",
+    "transmission": "Automatic",
+    "drivetrain": "AWD",
+    "color": "White",
+    "status": "available",
+    "features": [
+      "Autopilot",
+      "Glass Roof",
+      "Navigation"
+    ],
+    "mpg_city": null,
+    "mpg_hwy": null,
+    "range_miles": 333
+  },
+  {
+    "stock_id": "CS1004",
+    "year": 2021,
+    "make": "Ford",
+    "model": "F-150 XLT",
+    "body_type": "Truck",
+    "price": 34995,
+    "mileage": 35200,
+    "fuel_type": "Gasoline",
+    "transmission": "Automatic",
+    "drivetrain": "4WD",
+    "color": "Black",
+    "status": "available",
+    "features": [
+      "Tow Package",
+      "Bluetooth",
+      "Backup Camera"
+    ],
+    "mpg_city": 20,
+    "mpg_hwy": 24
+  },
+  {
+    "stock_id": "CS1005",
+    "year": 2020,
+    "make": "BMW",
+    "model": "X3 xDrive30i",
+    "body_type": "SUV",
+    "price": 31995,
+    "mileage": 40150,
+    "fuel_type": "Gasoline",
+    "transmission": "Automatic",
+    "drivetrain": "AWD",
+    "color": "Gray",
+    "status": "available",
+    "features": [
+      "Leather Seats",
+      "Navigation",
+      "Panoramic Roof"
+    ],
+    "mpg_city": 24,
+    "mpg_hwy": 29
+  },
+  {
+    "stock_id": "CS1006",
+    "year": 2024,
+    "make": "Hyundai",
+    "model": "Ioniq 5 SEL",
+    "body_type": "SUV",
+    "price": 41250,
+    "mileage": 8100,
+    "fuel_type": "Electric",
+    "transmission": "Automatic",
+    "drivetrain": "AWD",
+    "color": "Matte Gray",
+    "status": "available",
+    "features": [
+      "Fast Charging",
+      "Heat Pump",
+      "Highway Driving Assist"
+    ],
+    "mpg_city": null,
+    "mpg_hwy": null,
+    "range_miles": 266
+  },
+  {
+    "stock_id": "CS1007",
+    "year": 2023,
+    "make": "Chevrolet",
+    "model": "Tahoe LT",
+    "body_type": "SUV",
+    "price": 52990,
+    "mileage": 15400,
+    "fuel_type": "Gasoline",
+    "transmission": "Automatic",
+    "drivetrain": "4WD",
+    "color": "Red",
+    "status": "sale_pending",
+    "features": [
+      "Third Row",
+      "Remote Start",
+      "Bose Audio"
+    ],
+    "mpg_city": 15,
+    "mpg_hwy": 20
+  },
+  {
+    "stock_id": "CS1008",
+    "year": 2022,
+    "make": "Lexus",
+    "model": "ES 350",
+    "body_type": "Sedan",
+    "price": 35990,
+    "mileage": 18800,
+    "fuel_type": "Gasoline",
+    "transmission": "Automatic",
+    "drivetrain": "FWD",
+    "color": "Pearl White",
+    "status": "available",
+    "features": [
+      "Mark Levinson Audio",
+      "Ventilated Seats",
+      "Lane Keep Assist"
+    ],
+    "mpg_city": 22,
+    "mpg_hwy": 32
+  }
+]

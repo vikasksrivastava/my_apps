@@ -5,3 +5,4 @@ httpx
 chromadb
 mcp
 pydantic
+openai>=1.0.0

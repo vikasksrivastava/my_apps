@@ -80,8 +80,9 @@ workflows:
   - id: "car-sales-workflow"
     name: "Car Sales Chatbot Workflow"
     description: "End-to-end conversational workflow for car sales assistance"
-    framework: "custom"
+    framework: "openai"
     entry_point: "app.py"
+    agent_file: "agents.py"
     type: "agentic"
 
     architecture:

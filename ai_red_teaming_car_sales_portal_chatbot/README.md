@@ -211,7 +211,8 @@ Navigate to: **http://localhost:8000**
 
 ```
 ai_red_teaming_car_sales_portal_chatbot/
-├── app.py                 # FastAPI main application
+├── app.py                 # FastAPI main application (OpenAI SDK)
+├── agents.py              # Agent & tool definitions for scanning
 ├── mcp_server.py          # MCP tool server with 12 dealership tools
 ├── ingest.py              # RAG document ingestion script
 ├── requirements.txt       # Python dependencies

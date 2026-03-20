@@ -6,3 +6,4 @@ chromadb
 mcp
 pydantic
 openai>=1.0.0
+openai-agents>=0.10.0

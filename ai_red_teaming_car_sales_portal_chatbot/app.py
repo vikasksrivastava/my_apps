@@ -7,8 +7,9 @@ An AI-powered chatbot using:
 - RAG with ChromaDB
 - MCP Tools for dealership operations
 
-This application is structured for detection by Splx AI Asset Management
-and Agentic Radar security scanning.
+This application is designed for AI Red Teaming research and security scanning.
+
+Author: Vikas Srivastava
 """
 
 import json

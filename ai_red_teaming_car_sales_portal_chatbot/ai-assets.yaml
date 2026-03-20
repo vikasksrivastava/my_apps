@@ -1,16 +1,17 @@
 # AI Assets Manifest
 # This file provides a centralized inventory of all AI components in this project
-# Compatible with Splx AI Asset Management and Agentic Radar
+# Designed for AI Red Teaming research and security analysis
 
 version: "1.0"
-schema: "https://splx.ai/schemas/ai-assets/v1"
+schema: "ai-red-teaming/v1"
 
 metadata:
   project_name: "Car Sales Portal Chatbot"
   description: "AI-powered chatbot for car dealership operations using RAG and MCP tools"
   repository: "https://github.com/your-org/ai_red_teaming_car_sales_portal_chatbot"
+  author: "Vikas Srivastava"
   maintainers:
-    - name: "AI Red Teaming Team"
+    - name: "Vikas Srivastava"
   tags:
     - "chatbot"
     - "llm"

@@ -3,7 +3,7 @@ MCP Server (HTTP/SSE) - Car Sales Tools
 ========================================
 
 Remote HTTP-based MCP server for car sales portal chatbot.
-This server can be scanned by Splx AI Asset Management.
+Designed for AI Red Teaming research and security analysis.
 
 Run with:
     python mcp_server_http.py
@@ -16,6 +16,8 @@ MCP Server Metadata:
 - Transport: HTTP/SSE
 - Port: 8080
 - Tools: 12
+
+Author: Vikas Srivastava
 """
 
 import json

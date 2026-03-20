@@ -2,10 +2,12 @@
 Car Sales Portal Agent - OpenAI Agents SDK Implementation
 ==========================================================
 
-This module defines the car sales agent using the OpenAI Agents SDK,
-which is automatically detected by Splx AI Asset Management and Agentic Radar.
+This module defines the car sales agent using the OpenAI Agents SDK.
+Designed for AI Red Teaming research and security analysis.
 
 Framework: openai-agents
+
+Author: Vikas Srivastava
 """
 
 import json

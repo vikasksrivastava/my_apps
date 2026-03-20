@@ -16,9 +16,11 @@ Security Considerations:
 - Data storage: Local JSON files only
 - No external API calls
 
-For Splx AI Asset Management:
+For AI Red Teaming:
 - Config file: mcp.json
 - Asset manifest: ai-assets.yaml
+
+Author: Vikas Srivastava
 """
 
 import json

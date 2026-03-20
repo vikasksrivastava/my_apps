@@ -3,9 +3,11 @@ Car Sales Portal - Agent Definitions
 =====================================
 
 This module defines the AI agents and tools for the car sales chatbot.
-Structured for detection by Splx AI Asset Management and Agentic Radar.
+Designed for AI Red Teaming research and security analysis.
 
 Agent Framework: OpenAI-compatible with MCP Tools
+
+Author: Vikas Srivastava
 """
 
 from typing import Any, Callable

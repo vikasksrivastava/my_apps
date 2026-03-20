@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "AI Red Teaming Demo"}
+    {name = "Vikas Srivastava"}
 ]
 keywords = [
     "ai",
@@ -59,7 +59,7 @@ dev = [
 car-sales-chatbot = "app:main"
 
 # =============================================================================
-# AI Asset Metadata for Splx AI Asset Management
+# AI Asset Metadata for AI Red Teaming
 # =============================================================================
 
 [tool.ai-assets]

@@ -1,5 +1,6 @@
-# Splx AI Asset Management Configuration
-# This file helps Splx discover and catalog AI assets in this repository
+# AI Red Teaming Configuration
+# This file helps discover and catalog AI assets in this repository
+# Author: Vikas Srivastava
 
 version: "1.0"
 
@@ -108,7 +109,7 @@ mcp_servers:
     transport: "stdio"
     command: "python mcp_server.py"
 
-  # Remote HTTP/SSE-based MCP server (for Splx AI Asset Management scanning)
+  # Remote HTTP/SSE-based MCP server (for AI Red Teaming scanning)
   - id: "car-sales-tools-http"
     name: "car-sales-tools-http"
     file: "mcp_server_http.py"

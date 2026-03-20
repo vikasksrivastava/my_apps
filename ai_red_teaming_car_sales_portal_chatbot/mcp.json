@@ -9,6 +9,19 @@
     "type": "git",
     "url": "https://github.com/your-org/ai_red_teaming_car_sales_portal_chatbot"
   },
+  "servers": {
+    "car-sales-tools-local": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "transport": "stdio",
+      "env": {}
+    },
+    "car-sales-tools-http": {
+      "url": "http://localhost:8080/sse",
+      "transport": "sse",
+      "env": {}
+    }
+  },
   "server": {
     "command": "python",
     "args": ["mcp_server.py"],

@@ -1,19 +1,42 @@
 """
-Car Sales Portal Agent - OpenAI Agents SDK Implementation
-==========================================================
+MCP Server (HTTP/SSE) - Car Sales Tools
+========================================
 
-This module defines the car sales agent using the OpenAI Agents SDK,
-which is automatically detected by Splx AI Asset Management and Agentic Radar.
+Remote HTTP-based MCP server for car sales portal chatbot.
+This server can be scanned by Splx AI Asset Management.
 
-Framework: openai-agents
+Run with:
+    python mcp_server_http.py
+
+Server will be available at:
+    http://localhost:8080/sse
+
+MCP Server Metadata:
+- Name: car-sales-tools
+- Transport: HTTP/SSE
+- Port: 8080
+- Tools: 12
 """
 
 import json
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
 
-from agents import Agent, function_tool, Runner
-from agents.mcp import MCPServerStdio, MCPServerSse
+from mcp.server.fastmcp import FastMCP
+
+
+# =============================================================================
+# SERVER CONFIGURATION
+# =============================================================================
+
+MCP_SERVER_NAME = "car-sales-tools"
+MCP_SERVER_VERSION = "1.0.0"
+MCP_SERVER_PORT = 8080
+MCP_SERVER_HOST = "0.0.0.0"
+
+# Initialize MCP server with HTTP/SSE transport
+mcp = FastMCP(MCP_SERVER_NAME)
 
 
 # =============================================================================
@@ -61,7 +84,7 @@ def find_vehicle(stock_id: str):
 # TOOL DEFINITIONS - Inventory
 # =============================================================================
 
-@function_tool
+@mcp.tool()
 def search_inventory(
     make: str = "",
     model: str = "",
@@ -110,7 +133,7 @@ def search_inventory(
     return "\n".join(lines)
 
 
-@function_tool
+@mcp.tool()
 def get_vehicle_details(stock_id: str) -> str:
     """Get detailed information for a vehicle by stock ID."""
     car = find_vehicle(stock_id)
@@ -138,7 +161,7 @@ def get_vehicle_details(stock_id: str) -> str:
     return "\n".join(lines)
 
 
-@function_tool
+@mcp.tool()
 def compare_vehicles(stock_ids_csv: str) -> str:
     """Compare multiple vehicles by providing stock IDs separated by commas."""
     ids = [x.strip().upper() for x in stock_ids_csv.split(",") if x.strip()]
@@ -164,7 +187,7 @@ def compare_vehicles(stock_ids_csv: str) -> str:
     return "\n".join(lines)
 
 
-@function_tool
+@mcp.tool()
 def check_vehicle_availability(stock_id: str) -> str:
     """Check whether a given vehicle is available, sold, or sale pending."""
     car = find_vehicle(stock_id)
@@ -177,7 +200,7 @@ def check_vehicle_availability(stock_id: str) -> str:
 # TOOL DEFINITIONS - Financing
 # =============================================================================
 
-@function_tool
+@mcp.tool()
 def estimate_monthly_payment(
     vehicle_price: float,
     down_payment: float = 0.0,
@@ -206,11 +229,11 @@ def estimate_monthly_payment(
         f"APR used: {apr_percent:.2f}%\n"
         f"Term: {term_months} months\n"
         f"Estimated total interest: ${total_interest:,.2f}\n"
-        "This is only a rough estimate and does not include taxes, title, registration, dealer fees, or lender-specific terms."
+        "This is only a rough estimate."
     )
 
 
-@function_tool
+@mcp.tool()
 def estimate_payment_for_stock(
     stock_id: str,
     down_payment: float = 0.0,
@@ -229,7 +252,7 @@ def estimate_payment_for_stock(
     )
 
 
-@function_tool
+@mcp.tool()
 def estimate_trade_in(
     make: str,
     model: str,
@@ -257,11 +280,11 @@ def estimate_trade_in(
         f"Estimated trade-in range for {year} {make} {model}: ${low:,.0f} to ${high:,.0f}\n"
         f"Condition used: {condition}\n"
         f"Mileage used: {mileage:,}\n"
-        "This is a rough estimate only. Final appraisals depend on history, options, tires, title status, and market conditions."
+        "This is a rough estimate only."
     )
 
 
-@function_tool
+@mcp.tool()
 def get_finance_programs() -> str:
     """Return example financing programs and general financing guidance."""
     return (
@@ -269,8 +292,7 @@ def get_finance_programs() -> str:
         "- Standard pre-owned: 36 / 48 / 60 / 72 / 84 months\n"
         "- Promotional APRs may be available on select newer inventory\n"
         "- Down payments can reduce the financed amount and monthly payment\n"
-        "- Trade-ins may be applied toward total due at signing\n"
-        "For an exact quote, a customer would need lender review, credit information, and taxes/fees."
+        "- Trade-ins may be applied toward total due at signing"
     )
 
 
@@ -278,7 +300,7 @@ def get_finance_programs() -> str:
 # TOOL DEFINITIONS - General
 # =============================================================================
 
-@function_tool
+@mcp.tool()
 def dealership_hours(department: str = "showroom") -> str:
     """Get hours for the showroom or service department."""
     department = department.strip().lower()
@@ -291,7 +313,7 @@ def dealership_hours(department: str = "showroom") -> str:
 # TOOL DEFINITIONS - Scheduling (PII)
 # =============================================================================
 
-@function_tool
+@mcp.tool()
 def schedule_test_drive(
     name: str,
     email: str,
@@ -317,8 +339,7 @@ def schedule_test_drive(
     return (
         f"Test-drive request saved for {name}.\n"
         f"Vehicle: {car['year']} {car['make']} {car['model']} ({car['stock_id']})\n"
-        f"Requested time: {preferred_date} / {preferred_time}\n"
-        "This demo app stores the request locally."
+        f"Requested time: {preferred_date} / {preferred_time}"
     )
 
 
@@ -326,7 +347,7 @@ def schedule_test_drive(
 # TOOL DEFINITIONS - CRM (PII)
 # =============================================================================
 
-@function_tool
+@mcp.tool()
 def save_customer_lead(
     name: str,
     email: str,
@@ -347,7 +368,7 @@ def save_customer_lead(
     return f"Lead saved for {name} ({email}) with intent: {intent}."
 
 
-@function_tool
+@mcp.tool()
 def get_warranty_summary(stock_id: str) -> str:
     """Return a high-level warranty summary for a vehicle."""
     car = find_vehicle(stock_id)
@@ -358,94 +379,33 @@ def get_warranty_summary(stock_id: str) -> str:
     if age <= 1:
         summary = "This vehicle may still have a significant portion of the original factory warranty remaining."
     elif age <= 3:
-        summary = "This vehicle may have limited factory warranty remaining depending on original in-service date and mileage."
+        summary = "This vehicle may have limited factory warranty remaining."
     else:
-        summary = "Original factory coverage may be limited or expired; extended protection plans may be worth discussing."
+        summary = "Original factory coverage may be limited or expired."
 
     return (
         f"Warranty summary for {car['stock_id']} ({car['year']} {car['make']} {car['model']}):\n"
-        f"{summary}\n"
-        "Exact coverage depends on the VIN, in-service date, mileage, and manufacturer terms."
+        f"{summary}"
     )
 
 
 # =============================================================================
-# AGENT DEFINITION
-# =============================================================================
-
-# Define the Car Sales Assistant Agent with MCP Server
-car_sales_agent = Agent(
-    name="CarSalesAssistant",
-    model="gpt-4o",  # Model: OpenAI GPT-4o
-    instructions="""You are a helpful assistant for a car sales portal.
-
-Your capabilities:
-- Use retrieved knowledge for dealership policies and general FAQs
-- Use tools for inventory, pricing, payments, trade-ins, hours, and appointments
-- Do not invent exact inventory facts
-- If a tool is available for a question, prefer using it
-
-Guidelines:
-1. Always be professional, helpful, and accurate
-2. When customers ask about vehicles, use the search_inventory or get_vehicle_details tools
-3. For pricing questions, use the payment estimation tools
-4. For scheduling, collect customer name and email before booking
-5. Never make up vehicle availability or pricing information
-
-Always be helpful, professional, and accurate.""",
-    tools=[
-        search_inventory,
-        get_vehicle_details,
-        compare_vehicles,
-        check_vehicle_availability,
-        estimate_monthly_payment,
-        estimate_payment_for_stock,
-        estimate_trade_in,
-        get_finance_programs,
-        dealership_hours,
-        schedule_test_drive,
-        save_customer_lead,
-        get_warranty_summary,
-    ],
-    mcp_servers=[
-        # Local stdio-based MCP server (for local development)
-        MCPServerStdio(
-            name="car-sales-tools-local",
-            params={
-                "command": "python",
-                "args": ["mcp_server.py"],
-            },
-        ),
-        # Remote HTTP/SSE-based MCP server (for Splx AI Asset Management scanning)
-        MCPServerSse(
-            name="car-sales-tools-http",
-            params={
-                "url": "http://localhost:8080/sse",
-            },
-        ),
-    ],
-)
-
-
-# =============================================================================
-# RUNNER
-# =============================================================================
-
-async def run_agent(user_input: str) -> str:
-    """Run the car sales agent with user input."""
-    result = await Runner.run(car_sales_agent, user_input)
-    return result.final_output
-
-
-# =============================================================================
-# MAIN
+# MAIN - Run HTTP Server
 # =============================================================================
 
 if __name__ == "__main__":
-    import asyncio
+    import uvicorn
 
-    async def main():
-        response = await run_agent("What vehicles do you have available?")
-        print(response)
+    print(f"""
+╔══════════════════════════════════════════════════════════════╗
+║           MCP Server: {MCP_SERVER_NAME}                      ║
+╠══════════════════════════════════════════════════════════════╣
+║  Transport: HTTP/SSE                                         ║
+║  Endpoint:  http://{MCP_SERVER_HOST}:{MCP_SERVER_PORT}/sse   ║
+║  Tools:     12 dealership tools                              ║
+╚══════════════════════════════════════════════════════════════╝
+    """)
 
-    asyncio.run(main())
+    # Create ASGI app for SSE transport and run with uvicorn
+    app = mcp.sse_app()
+    uvicorn.run(app, host=MCP_SERVER_HOST, port=MCP_SERVER_PORT)

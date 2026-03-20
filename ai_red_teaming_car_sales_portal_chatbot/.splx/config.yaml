@@ -100,12 +100,27 @@ workflows:
 
 # MCP Server definition
 mcp_servers:
-  - id: "car-sales-tools"
-    name: "car-sales-tools"
+  # Local stdio-based MCP server (for local development)
+  - id: "car-sales-tools-local"
+    name: "car-sales-tools-local"
     file: "mcp_server.py"
     config_file: "mcp.json"
     transport: "stdio"
     command: "python mcp_server.py"
+
+  # Remote HTTP/SSE-based MCP server (for Splx AI Asset Management scanning)
+  - id: "car-sales-tools-http"
+    name: "car-sales-tools-http"
+    file: "mcp_server_http.py"
+    config_file: "mcp.json"
+    transport: "sse"
+    url: "http://localhost:8080/sse"
+    command: "python mcp_server_http.py"
+    remote: true
+    endpoint:
+      host: "0.0.0.0"
+      port: 8080
+      path: "/sse"
 
     tools:
       - name: "search_inventory"

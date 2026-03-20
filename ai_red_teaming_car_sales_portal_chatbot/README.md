@@ -301,10 +301,26 @@ This project is configured for automatic detection by [Splx AI Asset Management]
 
 | Asset Type | Assets Detected |
 |------------|-----------------|
-| **Models** | `qwen2.5:3b` (chat), `nomic-embed-text` (embedding) |
+| **Models** | `gpt-4o` (agent), `qwen2.5:3b` (chat), `nomic-embed-text` (embedding) |
 | **AI Workflows** | Car Sales Chatbot Workflow (RAG + Agent) |
-| **MCP Servers** | `car-sales-tools` (12 tools) |
+| **MCP Servers** | `car-sales-tools-http` (HTTP/SSE, 12 tools) |
 | **Issues** | Security vulnerabilities, PII handling |
+
+### Running the HTTP MCP Server for Splx Scanning
+
+Splx scans remote MCP servers via HTTP/SSE. To enable MCP Server scanning:
+
+```bash
+# Start the HTTP MCP server
+python mcp_server_http.py
+```
+
+The server will be available at: `http://localhost:8080/sse`
+
+For production/remote scanning, deploy this server to a publicly accessible endpoint and update the URL in:
+- `mcp.json` (servers.car-sales-tools-http.url)
+- `car_sales_agent.py` (MCPServerSse params.url)
+- `.splx/config.yaml` (mcp_servers[1].url)
 
 ### Configuration Files
 

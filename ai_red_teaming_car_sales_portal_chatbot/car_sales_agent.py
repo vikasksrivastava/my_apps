@@ -373,9 +373,10 @@ def get_warranty_summary(stock_id: str) -> str:
 # AGENT DEFINITION
 # =============================================================================
 
-# Define the Car Sales Assistant Agent
+# Define the Car Sales Assistant Agent with MCP Server
 car_sales_agent = Agent(
     name="CarSalesAssistant",
+    model="gpt-4o",  # Model: OpenAI GPT-4o
     instructions="""You are a helpful assistant for a car sales portal.
 
 Your capabilities:
@@ -405,6 +406,15 @@ Always be helpful, professional, and accurate.""",
         schedule_test_drive,
         save_customer_lead,
         get_warranty_summary,
+    ],
+    mcp_servers=[
+        MCPServerStdio(
+            name="car-sales-tools",
+            params={
+                "command": "python",
+                "args": ["mcp_server.py"],
+            },
+        ),
     ],
 )
 

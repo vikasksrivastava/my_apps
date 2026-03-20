@@ -361,6 +361,19 @@ async def chat_api(payload: ChatIn):
     return {"reply": assistant_message.content or ""}
 
 
+@app.get("/api/tools")
+async def get_tools():
+    """Return list of available MCP tools with their schemas."""
+    tools = []
+    for tool in app.state.tools:
+        tools.append({
+            "name": tool["function"]["name"],
+            "description": tool["function"]["description"],
+            "parameters": tool["function"]["parameters"]
+        })
+    return {"tools": tools, "count": len(tools)}
+
+
 @app.post("/chat/stream")
 async def chat_stream_api(payload: ChatIn):
     """
@@ -381,6 +394,9 @@ async def chat_stream_api(payload: ChatIn):
     """
     user_text = payload.message.strip()
 
+    # Get tool names for reference
+    tool_names = [t["function"]["name"] for t in app.state.tools]
+
     async def generate_response() -> AsyncGenerator[str, None]:
         nonlocal user_text
 
@@ -389,35 +405,73 @@ async def chat_stream_api(payload: ChatIn):
             yield format_sse("done", {})
             return
 
-        # Step 1: RAG Retrieval
-        yield format_sse("status", {
+        # Step 0: Explain the pipeline
+        yield format_sse("pipeline_start", {
+            "type": "pipeline_info",
+            "message": "Starting AI Pipeline",
+            "explanation": "Every query goes through a multi-stage pipeline: (1) RAG retrieval to find relevant documents, (2) LLM processing with tool awareness, (3) Optional tool execution via MCP, (4) Final response generation.",
+            "details": {
+                "model": CHAT_MODEL,
+                "embedding_model": EMBED_MODEL,
+                "vector_store": "ChromaDB",
+                "mcp_transport": "stdio",
+                "available_tools": tool_names
+            }
+        })
+
+        # Step 1: RAG Retrieval - with detailed explanation
+        yield format_sse("rag_start", {
             "type": "rag_start",
-            "message": "Searching knowledge base...",
-            "details": {"query": user_text[:100] + "..." if len(user_text) > 100 else user_text}
+            "message": "Step 1: RAG (Retrieval-Augmented Generation)",
+            "explanation": "Before sending your question to the LLM, we first search our knowledge base to find relevant context. This helps the AI give more accurate answers based on actual dealership data.",
+            "details": {
+                "query": user_text,
+                "vector_store": "ChromaDB",
+                "collection": COLLECTION_NAME,
+                "embedding_model": EMBED_MODEL,
+                "top_k": 4,
+                "curl_equivalent": f'curl -X POST http://localhost:11434/api/embeddings -d \'{{"model": "{EMBED_MODEL}", "prompt": "{user_text[:50]}..."}}\''
+            }
         })
 
         rag_context = await retrieve_context(user_text, app.state.collection)
 
         if rag_context:
-            # Extract sources from context
+            # Extract sources and chunks from context
             sources = []
+            chunks = []
+            current_chunk = []
             for line in rag_context.split("\n"):
                 if line.startswith("[source:"):
+                    if current_chunk:
+                        chunks.append("\n".join(current_chunk))
+                        current_chunk = []
                     sources.append(line.split("]")[0].replace("[source: ", ""))
+                else:
+                    current_chunk.append(line)
+            if current_chunk:
+                chunks.append("\n".join(current_chunk))
 
-            yield format_sse("status", {
+            yield format_sse("rag_complete", {
                 "type": "rag_complete",
-                "message": f"Found {len(sources)} relevant document(s)",
-                "details": {"sources": sources, "context_length": len(rag_context)}
+                "message": f"Found {len(sources)} relevant document chunks",
+                "explanation": f"ChromaDB returned {len(sources)} text chunks that are semantically similar to your query. These will be injected into the LLM prompt to provide context.",
+                "details": {
+                    "sources": sources,
+                    "num_chunks": len(chunks),
+                    "total_context_chars": len(rag_context),
+                    "chunks_preview": [c[:150] + "..." if len(c) > 150 else c for c in chunks[:3]]
+                }
             })
         else:
-            yield format_sse("status", {
+            yield format_sse("rag_complete", {
                 "type": "rag_complete",
-                "message": "No relevant documents found",
-                "details": {}
+                "message": "No relevant documents found in knowledge base",
+                "explanation": "The vector similarity search didn't find any documents above the relevance threshold. The LLM will rely on its training and available tools.",
+                "details": {"searched_collection": COLLECTION_NAME}
             })
 
-        # Step 2: Prepare message
+        # Step 2: Prepare augmented message
         user_message = user_text
         if rag_context:
             user_message = (
@@ -426,13 +480,32 @@ async def chat_stream_api(payload: ChatIn):
                 "Use the knowledge base context when it is relevant."
             )
 
+            yield format_sse("context_injection", {
+                "type": "context_injection",
+                "message": "Injecting RAG context into prompt",
+                "explanation": "The retrieved documents are now being added to your message. The LLM will see both your original question AND the relevant context from our knowledge base.",
+                "details": {
+                    "original_message_length": len(user_text),
+                    "augmented_message_length": len(user_message),
+                    "context_added": True
+                }
+            })
+
         conversation.append({"role": "user", "content": user_message})
 
-        # Step 3: Initial LLM call
-        yield format_sse("status", {
+        # Step 3: Initial LLM call with tool awareness
+        yield format_sse("llm_start", {
             "type": "llm_start",
-            "message": "Thinking...",
-            "details": {"model": CHAT_MODEL, "tools_available": len(app.state.tools)}
+            "message": "Step 2: LLM Processing with Tool Awareness",
+            "explanation": f"Sending the augmented prompt to {CHAT_MODEL} via Ollama. The LLM is aware of {len(tool_names)} available tools and can decide to call them if needed to answer your question.",
+            "details": {
+                "model": CHAT_MODEL,
+                "endpoint": OPENAI_BASE_URL,
+                "tools_available": len(tool_names),
+                "tool_names": tool_names,
+                "conversation_turns": len(conversation),
+                "curl_equivalent": f'curl -X POST {OPENAI_BASE_URL}/chat/completions -H "Content-Type: application/json" -d \'{{"model": "{CHAT_MODEL}", "messages": [...], "tools": [{len(tool_names)} tools], "stream": true}}\''
+            }
         })
 
         # Collect streaming response
@@ -499,22 +572,53 @@ async def chat_stream_api(payload: ChatIn):
                 except json.JSONDecodeError:
                     fn_args = {}
 
-                # Emit tool call event
+                # Find tool description
+                tool_desc = ""
+                tool_params = {}
+                for t in app.state.tools:
+                    if t["function"]["name"] == fn_name:
+                        tool_desc = t["function"]["description"]
+                        tool_params = t["function"]["parameters"]
+                        break
+
+                # Emit detailed tool call event
                 yield format_sse("tool_call", {
                     "type": "mcp_call",
-                    "message": f"Calling tool: {fn_name}",
-                    "details": {"tool": fn_name, "arguments": fn_args}
+                    "message": f"Step 3: MCP Tool Execution - {fn_name}",
+                    "explanation": f"The LLM decided to call the '{fn_name}' tool to get real data. This is an MCP (Model Context Protocol) call to our local tool server.",
+                    "details": {
+                        "tool": fn_name,
+                        "description": tool_desc,
+                        "arguments": fn_args,
+                        "mcp_transport": "stdio",
+                        "mcp_server": "mcp_server.py",
+                        "curl_equivalent": f'curl -X POST http://localhost:8000/mcp/call -H "Content-Type: application/json" -d \'{json.dumps({"tool": fn_name, "arguments": fn_args})}\'',
+                        "mcp_json_rpc": {
+                            "jsonrpc": "2.0",
+                            "method": "tools/call",
+                            "params": {
+                                "name": fn_name,
+                                "arguments": fn_args
+                            }
+                        }
+                    }
                 })
 
                 # Execute tool via MCP
                 mcp_result = await app.state.mcp_session.call_tool(fn_name, fn_args)
                 result_text = extract_text_from_mcp_result(mcp_result)
 
-                # Emit tool result event
+                # Emit detailed tool result event
                 yield format_sse("tool_result", {
                     "type": "mcp_result",
-                    "message": f"Tool {fn_name} completed",
-                    "details": {"tool": fn_name, "result_preview": result_text[:200] + "..." if len(result_text) > 200 else result_text}
+                    "message": f"Tool '{fn_name}' returned successfully",
+                    "explanation": "The MCP tool executed and returned data. This result will be sent back to the LLM so it can formulate a response based on real data.",
+                    "details": {
+                        "tool": fn_name,
+                        "result_length": len(result_text),
+                        "result_full": result_text,
+                        "next_step": "Sending result back to LLM for final response generation"
+                    }
                 })
 
                 # Add tool result to conversation
@@ -525,10 +629,16 @@ async def chat_stream_api(payload: ChatIn):
                 })
 
             # Get next response with streaming
-            yield format_sse("status", {
+            yield format_sse("llm_continue", {
                 "type": "llm_continue",
-                "message": "Processing tool results...",
-                "details": {"iteration": iteration}
+                "message": f"Step 4: LLM Processing Tool Results (iteration {iteration})",
+                "explanation": "The tool results have been added to the conversation. Now the LLM will process them and either call more tools or generate the final response.",
+                "details": {
+                    "iteration": iteration,
+                    "max_iterations": max_iterations,
+                    "tools_executed_this_round": len(tool_calls_data),
+                    "conversation_length": len(conversation)
+                }
             })
 
             full_content = ""
@@ -576,7 +686,17 @@ async def chat_stream_api(payload: ChatIn):
                 ]
             conversation.append(msg_dict)
 
-        yield format_sse("done", {"total_iterations": iteration})
+        yield format_sse("done", {
+            "type": "pipeline_complete",
+            "message": "Pipeline Complete",
+            "explanation": "The AI pipeline has finished processing your request. All stages completed successfully.",
+            "details": {
+                "total_tool_iterations": iteration,
+                "rag_used": bool(rag_context),
+                "final_response_length": len(full_content),
+                "conversation_turns": len(conversation)
+            }
+        })
 
     return StreamingResponse(
         generate_response(),

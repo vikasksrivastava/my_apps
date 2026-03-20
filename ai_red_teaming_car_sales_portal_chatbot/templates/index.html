@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
       --primary: #6366f1;
@@ -14,6 +16,9 @@
       --primary-light: #818cf8;
       --accent: #10b981;
       --accent-orange: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-blue: #3b82f6;
+      --accent-red: #ef4444;
       --bg-dark: #0f172a;
       --bg-darker: #020617;
       --bg-card: #1e293b;
@@ -23,7 +28,6 @@
       --text-dark: #1e293b;
       --border: #334155;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,89 +44,53 @@
     /* Header */
     .header {
       background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
-      padding: 20px 32px;
+      padding: 16px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
     }
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
 
     .logo {
-      width: 48px;
-      height: 48px;
+      width: 44px; height: 44px;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
 
-    .header-title h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-    }
-
-    .header-title .subtitle {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
+    .header-title h1 { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); }
+    .header-title .subtitle { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
 
     .header-badge {
       background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
-      color: white;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      color: white; padding: 6px 14px; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
     }
 
     /* Main Container */
-    .main-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    .main-container { display: flex; flex: 1; overflow: hidden; }
 
     /* Chat Area */
     .chat-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 24px;
+      flex: 1; display: flex; flex-direction: column;
+      padding: 20px;
       background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
     }
 
     #chat {
-      flex: 1;
-      background: white;
-      border-radius: 16px;
-      overflow-y: auto;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid #e2e8f0;
+      flex: 1; background: white; border-radius: 16px;
+      overflow-y: auto; padding: 20px; margin-bottom: 12px;
+      box-shadow: var(--shadow); border: 1px solid #e2e8f0;
     }
 
+    /* Messages with Markdown support */
     .msg {
-      margin: 16px 0;
-      padding: 16px 20px;
-      border-radius: 16px;
-      line-height: 1.6;
-      font-size: 0.95rem;
-      max-width: 85%;
+      margin: 14px 0; padding: 16px 20px; border-radius: 16px;
+      line-height: 1.6; font-size: 0.95rem; max-width: 88%;
       animation: fadeIn 0.3s ease-out;
     }
 
@@ -131,261 +99,182 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .msg strong {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+    .msg .role-label {
+      display: block; font-weight: 600; margin-bottom: 8px;
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
     }
 
-    .msg .content {
-      white-space: pre-wrap;
+    .msg .content { line-height: 1.7; }
+    .msg .content p { margin: 0 0 12px 0; }
+    .msg .content p:last-child { margin-bottom: 0; }
+    .msg .content ul, .msg .content ol { margin: 8px 0 8px 20px; }
+    .msg .content li { margin: 4px 0; }
+    .msg .content code {
+      background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85em;
     }
+    .msg .content pre {
+      background: #1e293b; color: #e2e8f0; padding: 12px 16px;
+      border-radius: 8px; overflow-x: auto; margin: 12px 0;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85em;
+    }
+    .msg .content pre code { background: none; padding: 0; color: inherit; }
+    .msg .content strong { font-weight: 600; }
+    .msg .content h1, .msg .content h2, .msg .content h3 {
+      margin: 16px 0 8px 0; font-weight: 600;
+    }
+    .msg .content table { border-collapse: collapse; margin: 12px 0; width: 100%; }
+    .msg .content th, .msg .content td {
+      border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left;
+    }
+    .msg .content th { background: #f8fafc; font-weight: 600; }
 
     .user {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: white;
-      margin-left: auto;
-      border-bottom-right-radius: 4px;
+      color: white; margin-left: auto; border-bottom-right-radius: 4px;
     }
-
-    .user strong { color: rgba(255,255,255,0.8); }
+    .user .role-label { color: rgba(255,255,255,0.7); }
+    .user .content code { background: rgba(255,255,255,0.15); color: white; }
+    .user .content pre { background: rgba(0,0,0,0.3); }
 
     .assistant {
-      background: #f1f5f9;
-      color: var(--text-dark);
-      margin-right: auto;
-      border-bottom-left-radius: 4px;
+      background: #f8fafc; color: var(--text-dark);
+      margin-right: auto; border-bottom-left-radius: 4px;
       border: 1px solid #e2e8f0;
     }
-
-    .assistant strong { color: var(--primary); }
+    .assistant .role-label { color: var(--primary); }
 
     .assistant.streaming {
-      background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-      background-size: 200% 100%;
-      animation: shimmer 2s infinite;
+      background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
+      background-size: 200% 100%; animation: shimmer 2s infinite;
     }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
     .typing-cursor {
-      display: inline-block;
-      width: 3px;
-      height: 18px;
-      background: var(--primary);
-      margin-left: 4px;
-      animation: blink 0.8s infinite;
-      vertical-align: text-bottom;
-      border-radius: 2px;
+      display: inline-block; width: 3px; height: 18px;
+      background: var(--primary); margin-left: 4px;
+      animation: blink 0.8s infinite; vertical-align: text-bottom; border-radius: 2px;
     }
-
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
+    @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
 
     /* Input Controls */
     .controls {
-      display: flex;
-      gap: 12px;
-      background: white;
-      padding: 16px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      border: 1px solid #e2e8f0;
+      display: flex; gap: 12px; background: white; padding: 14px;
+      border-radius: 16px; box-shadow: var(--shadow); border: 1px solid #e2e8f0;
     }
 
     input {
-      flex: 1;
-      font-family: inherit;
-      font-size: 1rem;
-      padding: 14px 18px;
-      border-radius: 12px;
-      border: 2px solid #e2e8f0;
-      outline: none;
-      transition: all 0.2s ease;
+      flex: 1; font-family: inherit; font-size: 0.95rem;
+      padding: 12px 16px; border-radius: 10px; border: 2px solid #e2e8f0;
+      outline: none; transition: all 0.2s ease;
     }
-
-    input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    input:disabled {
-      background: #f8fafc;
-      color: var(--text-secondary);
-    }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+    input:disabled { background: #f8fafc; color: var(--text-secondary); }
 
     button {
-      font-family: inherit;
-      padding: 14px 28px;
-      border: 0;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.95rem;
-      transition: all 0.2s ease;
+      font-family: inherit; padding: 12px 24px; border: 0; border-radius: 10px;
+      cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease;
     }
 
     .send-btn {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-      color: white;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
+    .send-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }
+    .send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .send-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    /* Examples - Scrollable grid */
+    .examples-container {
+      margin-top: 12px; background: white; border-radius: 12px;
+      padding: 12px 16px; border: 1px solid #e2e8f0;
     }
-
-    .send-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+    .examples-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
     }
-
-    /* Examples */
-    .examples {
-      margin-top: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
+    .examples-label { color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+    .examples-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px; max-height: 140px; overflow-y: auto;
     }
-
-    .examples-label {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
     .pill {
-      padding: 8px 14px;
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      color: var(--text-dark);
-      transition: all 0.2s ease;
+      padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 8px; cursor: pointer; font-size: 0.8rem;
+      color: var(--text-dark); transition: all 0.2s ease; text-align: left;
     }
-
-    .pill:hover {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      transform: translateY(-1px);
+    .pill:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .pill-category {
+      font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase;
+      margin-bottom: 2px; font-weight: 600;
     }
+    .pill:hover .pill-category { color: rgba(255,255,255,0.7); }
 
     /* Sidebar */
     .sidebar {
-      width: 380px;
-      background: var(--bg-dark);
-      color: var(--text-primary);
-      display: flex;
-      flex-direction: column;
-      border-left: 1px solid var(--border);
+      width: 420px; background: var(--bg-dark); color: var(--text-primary);
+      display: flex; flex-direction: column; border-left: 1px solid var(--border);
     }
 
     .sidebar-header {
-      padding: 16px 20px;
-      background: var(--bg-darker);
+      padding: 14px 18px; background: var(--bg-darker);
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      display: flex; align-items: center; gap: 10px;
     }
-
     .sidebar-header .icon {
-      width: 12px;
-      height: 12px;
-      background: var(--accent);
-      border-radius: 50%;
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+      width: 10px; height: 10px; background: var(--accent);
+      border-radius: 50%; box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
     }
-
     .sidebar-header.active .icon {
       background: var(--accent-orange);
       box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
       animation: pulse 1s infinite;
     }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.2); opacity: 0.8; }
-    }
-
-    .sidebar-header h2 {
-      font-size: 0.9rem;
-      font-weight: 600;
-      flex: 1;
-    }
-
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+    .sidebar-header h2 { font-size: 0.85rem; font-weight: 600; flex: 1; }
     .clear-btn {
-      background: transparent;
-      color: var(--text-secondary);
-      font-size: 0.75rem;
-      padding: 6px 10px;
-      border-radius: 6px;
+      background: var(--bg-card); color: var(--text-secondary);
+      font-size: 0.7rem; padding: 5px 10px; border-radius: 6px;
     }
+    .clear-btn:hover { background: var(--border); color: var(--text-primary); }
 
-    .clear-btn:hover {
-      background: var(--bg-card);
-      color: var(--text-primary);
-    }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 12px; }
 
-    .sidebar-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-    }
-
+    /* Collapsible Status Items */
     .status-item {
-      padding: 14px 16px;
-      margin-bottom: 10px;
-      background: var(--bg-card);
-      border-radius: 12px;
-      font-size: 0.85rem;
-      border-left: 4px solid var(--border);
-      animation: slideIn 0.3s ease-out;
+      margin-bottom: 10px; background: var(--bg-card); border-radius: 10px;
+      border-left: 4px solid var(--border); animation: slideIn 0.3s ease-out;
+      overflow: hidden;
     }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(16px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
-    .status-item.rag { border-left-color: #8b5cf6; }
-    .status-item.llm { border-left-color: #3b82f6; }
+    .status-item.pipeline { border-left-color: var(--primary); }
+    .status-item.rag { border-left-color: var(--accent-purple); }
+    .status-item.llm { border-left-color: var(--accent-blue); }
     .status-item.mcp { border-left-color: var(--accent); }
     .status-item.tool { border-left-color: var(--accent-orange); }
-    .status-item.error { border-left-color: #ef4444; }
+    .status-item.error { border-left-color: var(--accent-red); }
     .status-item.done { border-left-color: var(--accent); }
 
-    .status-item .title {
-      font-weight: 600;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .status-header {
+      padding: 12px 14px; cursor: pointer; display: flex;
+      align-items: flex-start; gap: 10px; user-select: none;
     }
+    .status-header:hover { background: rgba(255,255,255,0.03); }
 
-    .status-item .title .badge {
-      font-size: 0.65rem;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-family: 'JetBrains Mono', monospace;
+    .status-toggle {
+      width: 18px; height: 18px; display: flex; align-items: center;
+      justify-content: center; font-size: 10px; color: var(--text-secondary);
+      transition: transform 0.2s ease; flex-shrink: 0; margin-top: 2px;
     }
+    .status-item.expanded .status-toggle { transform: rotate(90deg); }
 
+    .status-title { flex: 1; }
+    .status-title .badge {
+      display: inline-block; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      font-family: 'JetBrains Mono', monospace; margin-right: 8px;
+    }
+    .status-item.pipeline .badge { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
     .status-item.rag .badge { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
     .status-item.llm .badge { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
     .status-item.mcp .badge { background: rgba(16, 185, 129, 0.2); color: #34d399; }
@@ -393,58 +282,56 @@
     .status-item.error .badge { background: rgba(239, 68, 68, 0.2); color: #f87171; }
     .status-item.done .badge { background: rgba(16, 185, 129, 0.2); color: #34d399; }
 
-    .status-item .details {
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-      font-family: 'JetBrains Mono', monospace;
-      word-break: break-word;
+    .status-message { font-size: 0.8rem; font-weight: 500; color: var(--text-primary); }
+    .status-explanation {
+      font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;
       line-height: 1.5;
     }
 
-    .status-item .details code {
-      background: rgba(0,0,0,0.3);
-      padding: 2px 6px;
-      border-radius: 4px;
+    .status-body {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+      background: rgba(0,0,0,0.2);
+    }
+    .status-item.expanded .status-body { max-height: 600px; overflow-y: auto; }
+
+    .status-details {
+      padding: 12px 14px; font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);
+    }
+
+    .detail-row { margin-bottom: 8px; }
+    .detail-label { color: var(--accent); font-weight: 600; display: block; margin-bottom: 2px; }
+    .detail-value {
+      color: var(--text-primary); background: rgba(0,0,0,0.3);
+      padding: 6px 10px; border-radius: 6px; display: block;
+      word-break: break-all; white-space: pre-wrap;
+    }
+    .detail-value.curl {
+      color: #fbbf24; font-size: 0.7rem; max-height: 80px; overflow-y: auto;
+    }
+    .detail-value.json { color: #34d399; max-height: 150px; overflow-y: auto; }
+    .detail-value.list { display: flex; flex-wrap: wrap; gap: 4px; background: none; padding: 4px 0; }
+    .detail-value.list span {
+      background: rgba(99, 102, 241, 0.2); color: var(--primary-light);
+      padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;
     }
 
     /* Stats Bar */
     .stats-bar {
-      padding: 14px 20px;
-      background: var(--bg-darker);
+      padding: 12px 18px; background: var(--bg-darker);
       border-top: 1px solid var(--border);
-      display: flex;
-      gap: 24px;
+      display: flex; gap: 20px; flex-wrap: wrap;
     }
-
-    .stat {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    .stat-value {
-      color: var(--text-primary);
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-    }
+    .stat { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-secondary); }
+    .stat-value { color: var(--text-primary); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
 
     /* Footer */
     .footer {
-      padding: 12px 20px;
-      background: var(--bg-darker);
+      padding: 10px 18px; background: var(--bg-darker);
       border-top: 1px solid var(--border);
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
+      text-align: center; font-size: 0.7rem; color: var(--text-secondary);
     }
-
-    .footer a {
-      color: var(--primary-light);
-      text-decoration: none;
-    }
-
+    .footer a { color: var(--primary-light); text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
   </style>
 </head>
@@ -454,7 +341,7 @@
       <div class="logo">🚗</div>
       <div class="header-title">
         <h1>Car Sales Portal</h1>
-        <div class="subtitle">AI-Powered Dealership Assistant with RAG & MCP</div>
+        <div class="subtitle">AI-Powered Assistant with RAG & MCP Tools</div>
       </div>
     </div>
     <div class="header-badge">AI Red Teaming Demo</div>
@@ -465,17 +352,15 @@
       <div id="chat"></div>
 
       <div class="controls">
-        <input id="message" placeholder="Ask about inventory, financing, trade-ins, or appointments..." />
+        <input id="message" placeholder="Ask about inventory, financing, trade-ins, or schedule appointments..." />
         <button id="sendBtn" class="send-btn" onclick="sendMessage()">Send</button>
       </div>
 
-      <div class="examples">
-        <span class="examples-label">Try:</span>
-        <span class="pill" onclick="fillPrompt(`Show me SUVs under $35,000 with AWD`)">SUVs under $35K</span>
-        <span class="pill" onclick="fillPrompt(`Compare CS1002 and CS1005`)">Compare vehicles</span>
-        <span class="pill" onclick="fillPrompt(`Estimate payment for CS1003 with $5000 down for 72 months`)">Payment estimate</span>
-        <span class="pill" onclick="fillPrompt(`I want to schedule a test drive for CS1001 next Tuesday`)">Test drive</span>
-        <span class="pill" onclick="fillPrompt(`What are your financing options?`)">Financing</span>
+      <div class="examples-container">
+        <div class="examples-header">
+          <span class="examples-label">Try These Examples</span>
+        </div>
+        <div class="examples-grid" id="examplesGrid"></div>
       </div>
     </div>
 
@@ -487,77 +372,177 @@
       </div>
       <div class="sidebar-content" id="statusLog"></div>
       <div class="stats-bar">
-        <div class="stat">RAG Queries: <span class="stat-value" id="statRag">0</span></div>
-        <div class="stat">MCP Tools: <span class="stat-value" id="statTools">0</span></div>
+        <div class="stat">RAG: <span class="stat-value" id="statRag">0</span></div>
+        <div class="stat">Tools: <span class="stat-value" id="statTools">0</span></div>
         <div class="stat">Tokens: <span class="stat-value" id="statTokens">0</span></div>
+        <div class="stat">Iterations: <span class="stat-value" id="statIterations">0</span></div>
       </div>
       <div class="footer">
-        Built by <strong>Vikas Srivastava</strong> | <a href="https://github.com/vikassri">GitHub</a>
+        Built by <strong>Vikas Srivastava</strong> | <a href="https://github.com/vikassri" target="_blank">GitHub</a>
       </div>
     </div>
   </div>
 
   <script>
+    // Example prompts organized by category
+    const examplePrompts = [
+      // Inventory
+      { category: "Inventory", text: "Show me all SUVs under $35,000 with AWD" },
+      { category: "Inventory", text: "What sedans do you have available?" },
+      { category: "Inventory", text: "List all electric vehicles in stock" },
+      { category: "Inventory", text: "Show me trucks with less than 30,000 miles" },
+      { category: "Inventory", text: "What's your cheapest car?" },
+      { category: "Inventory", text: "Do you have any hybrid vehicles?" },
+      { category: "Inventory", text: "Show vehicles under $25,000" },
+      { category: "Inventory", text: "What Toyota models do you have?" },
+
+      // Vehicle Details
+      { category: "Details", text: "Tell me about vehicle CS1001" },
+      { category: "Details", text: "What features does CS1003 have?" },
+      { category: "Details", text: "Is CS1005 still available?" },
+      { category: "Details", text: "What's the mileage on CS1002?" },
+
+      // Comparison
+      { category: "Compare", text: "Compare CS1002 and CS1005" },
+      { category: "Compare", text: "Compare CS1001, CS1003, and CS1004" },
+      { category: "Compare", text: "Which is better: CS1002 or CS1006?" },
+      { category: "Compare", text: "Compare all your SUVs" },
+
+      // Financing
+      { category: "Finance", text: "Estimate payment for CS1003 with $5000 down for 72 months" },
+      { category: "Finance", text: "What financing options do you offer?" },
+      { category: "Finance", text: "Calculate monthly payment for a $30,000 car" },
+      { category: "Finance", text: "What's the APR for a 60-month loan?" },
+      { category: "Finance", text: "How much would CS1001 cost per month?" },
+
+      // Trade-In
+      { category: "Trade-In", text: "Estimate trade-in for my 2019 Honda Civic with 45,000 miles" },
+      { category: "Trade-In", text: "What's my 2020 Toyota Camry worth?" },
+      { category: "Trade-In", text: "Trade-in value for a 2018 Ford F-150 in good condition" },
+      { category: "Trade-In", text: "How do you evaluate trade-ins?" },
+
+      // Scheduling
+      { category: "Schedule", text: "Schedule a test drive for CS1001 next Tuesday at 2pm" },
+      { category: "Schedule", text: "I want to test drive the Model 3" },
+      { category: "Schedule", text: "Can I schedule a test drive for this weekend?" },
+
+      // General Info
+      { category: "Info", text: "What are your business hours?" },
+      { category: "Info", text: "What's your return policy?" },
+      { category: "Info", text: "Do you offer warranties?" },
+      { category: "Info", text: "Where are you located?" },
+      { category: "Info", text: "What EV charging options do you have?" },
+
+      // Complex Queries
+      { category: "Complex", text: "I need an AWD SUV under $40k with good fuel economy" },
+      { category: "Complex", text: "Help me find a family car with the best warranty" },
+      { category: "Complex", text: "What's the total cost of CS1003 including tax and fees?" },
+      { category: "Complex", text: "I'm trading in my car and want to finance the rest" },
+    ];
+
     const chat = document.getElementById("chat");
     const input = document.getElementById("message");
     const sendBtn = document.getElementById("sendBtn");
     const statusLog = document.getElementById("statusLog");
     const sidebarHeader = document.getElementById("sidebarHeader");
+    const examplesGrid = document.getElementById("examplesGrid");
 
-    let stats = { rag: 0, tools: 0, tokens: 0 };
+    let stats = { rag: 0, tools: 0, tokens: 0, iterations: 0 };
     let isStreaming = false;
     let currentAssistantDiv = null;
+
+    // Initialize marked.js
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      headerIds: false,
+      mangle: false
+    });
+
+    // Populate example prompts
+    function initExamples() {
+      examplesGrid.innerHTML = examplePrompts.map(p => `
+        <div class="pill" onclick="fillPrompt(\`${p.text}\`)">
+          <div class="pill-category">${p.category}</div>
+          <div>${p.text.length > 35 ? p.text.substring(0, 35) + '...' : p.text}</div>
+        </div>
+      `).join('');
+    }
+    initExamples();
 
     function updateStats() {
       document.getElementById("statRag").textContent = stats.rag;
       document.getElementById("statTools").textContent = stats.tools;
       document.getElementById("statTokens").textContent = stats.tokens;
+      document.getElementById("statIterations").textContent = stats.iterations;
     }
 
-    function addStatus(type, title, details = null) {
+    function addStatus(type, message, explanation = "", details = null) {
       const div = document.createElement("div");
       div.className = `status-item ${type}`;
 
-      let detailsHtml = "";
-      if (details) {
-        const formatted = formatDetails(details);
-        if (formatted) {
-          detailsHtml = `<div class="details">${formatted}</div>`;
-        }
-      }
+      const hasDetails = details && Object.keys(details).length > 0;
 
       div.innerHTML = `
-        <div class="title">
-          <span class="badge">${type}</span>
-          ${escapeHtml(title)}
+        <div class="status-header" onclick="toggleStatus(this)">
+          <div class="status-toggle">${hasDetails ? '▶' : ''}</div>
+          <div class="status-title">
+            <span class="badge">${type}</span>
+            <div class="status-message">${escapeHtml(message)}</div>
+            ${explanation ? `<div class="status-explanation">${escapeHtml(explanation)}</div>` : ''}
+          </div>
         </div>
-        ${detailsHtml}
+        ${hasDetails ? `<div class="status-body"><div class="status-details">${formatDetails(details)}</div></div>` : ''}
       `;
+
       statusLog.appendChild(div);
       statusLog.scrollTop = statusLog.scrollHeight;
+    }
+
+    function toggleStatus(header) {
+      const item = header.closest('.status-item');
+      item.classList.toggle('expanded');
     }
 
     function formatDetails(details) {
       if (!details || Object.keys(details).length === 0) return "";
 
-      const parts = [];
+      let html = '';
       for (const [key, value] of Object.entries(details)) {
         if (value === null || value === undefined) continue;
-        if (Array.isArray(value)) {
-          parts.push(`<strong>${key}:</strong> ${value.join(", ")}`);
-        } else if (typeof value === "object") {
-          parts.push(`<strong>${key}:</strong> <code>${JSON.stringify(value)}</code>`);
+
+        html += `<div class="detail-row">`;
+        html += `<span class="detail-label">${formatKey(key)}</span>`;
+
+        if (key === 'curl_equivalent') {
+          html += `<span class="detail-value curl">${escapeHtml(String(value))}</span>`;
+        } else if (key === 'mcp_json_rpc' || key === 'arguments') {
+          html += `<span class="detail-value json">${escapeHtml(JSON.stringify(value, null, 2))}</span>`;
+        } else if (Array.isArray(value)) {
+          html += `<span class="detail-value list">${value.map(v => `<span>${escapeHtml(String(v))}</span>`).join('')}</span>`;
+        } else if (typeof value === 'object') {
+          html += `<span class="detail-value json">${escapeHtml(JSON.stringify(value, null, 2))}</span>`;
+        } else if (key === 'result_full' || key === 'chunks_preview') {
+          const strVal = Array.isArray(value) ? value.join('\n\n---\n\n') : String(value);
+          html += `<span class="detail-value json">${escapeHtml(strVal)}</span>`;
         } else {
-          parts.push(`<strong>${key}:</strong> <code>${value}</code>`);
+          html += `<span class="detail-value">${escapeHtml(String(value))}</span>`;
         }
+
+        html += `</div>`;
       }
-      return parts.join(" &bull; ");
+      return html;
+    }
+
+    function formatKey(key) {
+      return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
 
     function clearStatus() {
       statusLog.innerHTML = "";
-      stats = { rag: 0, tools: 0, tokens: 0 };
+      stats = { rag: 0, tools: 0, tokens: 0, iterations: 0 };
       updateStats();
+      loadTools();
     }
 
     function setStreaming(active) {
@@ -576,13 +561,18 @@
     function add(role, text, streaming = false) {
       const div = document.createElement("div");
       div.className = `msg ${role}` + (streaming ? " streaming" : "");
+
+      const renderedContent = role === 'assistant' ? marked.parse(text) : escapeHtml(text);
+
       div.innerHTML = `
-        <strong>${role === "user" ? "You" : "Assistant"}</strong>
-        <span class="content">${escapeHtml(text)}</span>
+        <span class="role-label">${role === "user" ? "You" : "Assistant"}</span>
+        <div class="content">${renderedContent}</div>
       `;
+
       if (streaming) {
         div.querySelector('.content').innerHTML += '<span class="typing-cursor"></span>';
       }
+
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
       return div;
@@ -596,7 +586,7 @@
 
     function updateAssistantMessage(div, text, done = false) {
       const content = div.querySelector('.content');
-      content.innerHTML = escapeHtml(text);
+      content.innerHTML = marked.parse(text);
       if (!done) {
         content.innerHTML += '<span class="typing-cursor"></span>';
       }
@@ -612,6 +602,26 @@
       input.focus();
     }
 
+    async function loadTools() {
+      try {
+        const res = await fetch('/api/tools');
+        const data = await res.json();
+        addStatus('pipeline', `System Ready - ${data.count} MCP Tools Available`,
+          'The MCP server is connected and tools are loaded. Click to see all available tools.',
+          {
+            tools_count: data.count,
+            available_tools: data.tools.map(t => t.name),
+            model: 'qwen2.5:3b',
+            embedding_model: 'nomic-embed-text',
+            vector_store: 'ChromaDB'
+          }
+        );
+      } catch (e) {
+        addStatus('error', 'Failed to load tools', e.message);
+      }
+    }
+    loadTools();
+
     async function sendMessage() {
       const text = input.value.trim();
       if (!text || isStreaming) return;
@@ -619,8 +629,6 @@
       add("user", text);
       input.value = "";
       setStreaming(true);
-
-      addStatus("llm", "Starting request", { query: text.substring(0, 40) + (text.length > 40 ? "..." : "") });
 
       try {
         const response = await fetch("/chat/stream", {
@@ -648,31 +656,39 @@
             if (line.startsWith("event: ")) {
               eventType = line.substring(7);
             } else if (line.startsWith("data: ")) {
-              const data = JSON.parse(line.substring(6));
-              handleEvent(eventType, data);
+              try {
+                const data = JSON.parse(line.substring(6));
+                handleEvent(eventType, data);
 
-              if (eventType === "content") {
-                stats.tokens++;
-                updateStats();
-                assistantText += data.token;
-                if (!currentAssistantDiv) {
-                  currentAssistantDiv = add("assistant", assistantText, true);
-                } else {
-                  updateAssistantMessage(currentAssistantDiv, assistantText, false);
+                if (eventType === "content") {
+                  stats.tokens++;
+                  updateStats();
+                  assistantText += data.token;
+                  if (!currentAssistantDiv) {
+                    currentAssistantDiv = add("assistant", assistantText, true);
+                  } else {
+                    updateAssistantMessage(currentAssistantDiv, assistantText, false);
+                  }
+                } else if (eventType === "done") {
+                  if (currentAssistantDiv) {
+                    updateAssistantMessage(currentAssistantDiv, assistantText, true);
+                  } else if (assistantText === "") {
+                    add("assistant", "(no response)");
+                  }
+                  if (data.total_tool_iterations) {
+                    stats.iterations = data.total_tool_iterations;
+                    updateStats();
+                  }
                 }
-              } else if (eventType === "done") {
-                if (currentAssistantDiv) {
-                  updateAssistantMessage(currentAssistantDiv, assistantText, true);
-                } else if (assistantText === "") {
-                  add("assistant", "(no response)");
-                }
+              } catch (e) {
+                console.error('Parse error:', e);
               }
             }
           }
         }
 
       } catch (e) {
-        addStatus("error", "Connection error", { error: e.message });
+        addStatus("error", "Connection error", e.message);
         add("assistant", "Error contacting server.");
       } finally {
         setStreaming(false);
@@ -681,53 +697,55 @@
     }
 
     function handleEvent(eventType, data) {
+      const explanation = data.explanation || '';
+      const message = data.message || eventType;
+      const details = data.details || {};
+
       switch (eventType) {
-        case "status":
-          handleStatusEvent(data);
+        case "pipeline_start":
+          addStatus("pipeline", message, explanation, details);
+          break;
+        case "rag_start":
+          addStatus("rag", message, explanation, details);
+          break;
+        case "rag_complete":
+          stats.rag++;
+          updateStats();
+          addStatus("rag", message, explanation, details);
+          break;
+        case "context_injection":
+          addStatus("rag", message, explanation, details);
+          break;
+        case "llm_start":
+          addStatus("llm", message, explanation, details);
+          break;
+        case "llm_continue":
+          addStatus("llm", message, explanation, details);
           break;
         case "tool_call":
           stats.tools++;
           updateStats();
-          addStatus("tool", data.message, data.details);
+          addStatus("tool", message, explanation, details);
           break;
         case "tool_result":
-          addStatus("mcp", data.message, data.details);
+          addStatus("mcp", message, explanation, details);
           break;
         case "error":
-          addStatus("error", data.message);
+          addStatus("error", message, explanation, details);
           break;
         case "done":
-          addStatus("done", "Response complete", data);
+          addStatus("done", message, explanation, details);
           break;
-      }
-    }
-
-    function handleStatusEvent(data) {
-      const typeMap = {
-        "rag_start": { category: "rag", message: data.message },
-        "rag_complete": { category: "rag", message: data.message, countRag: true },
-        "llm_start": { category: "llm", message: data.message },
-        "llm_continue": { category: "llm", message: data.message },
-      };
-
-      const mapped = typeMap[data.type];
-      if (mapped) {
-        addStatus(mapped.category, mapped.message, data.details);
-        if (mapped.countRag) {
-          stats.rag++;
-          updateStats();
-        }
-      } else {
-        addStatus("llm", data.message, data.details);
+        default:
+          if (data.type) {
+            addStatus(data.type.split('_')[0] || 'llm', message, explanation, details);
+          }
       }
     }
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !isStreaming) sendMessage();
     });
-
-    // Initial status
-    addStatus("done", "System ready", { model: "qwen2.5:3b", embedding: "nomic-embed-text", tools: 12 });
   </script>
 </body>
 </html>

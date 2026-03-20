@@ -388,6 +388,9 @@ pip install agentic-radar
 # Scan the application
 agentic-radar scan custom app.py --output-dir ./reports
 ```
+Example : 
+
+source venv/bin/activate && agentic-radar scan openai-agents --input-dir . --output-file /tmp/radar_mcp_scan.html 2>&1
 
 #### Automated CI/CD Scanning
 

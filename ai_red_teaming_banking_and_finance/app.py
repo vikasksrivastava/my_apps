@@ -1,11 +1,11 @@
 """
-Car Sales Portal Chatbot - Main Application
-============================================
+Banking & Finance Portal Chatbot - Main Application
+====================================================
 
 An AI-powered chatbot using:
 - OpenAI SDK (with Ollama backend)
 - RAG with ChromaDB
-- MCP Tools for dealership operations
+- MCP Tools for banking operations
 
 This application is designed for AI Red Teaming research and security scanning.
 
@@ -15,8 +15,9 @@ Author: Vikas Srivastava
 import json
 import asyncio
 import sys
+import time
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Optional
 
 import chromadb
 from fastapi import FastAPI, Request
@@ -33,35 +34,31 @@ from mcp.client.stdio import stdio_client
 # CONFIGURATION
 # =============================================================================
 
-# Ollama OpenAI-compatible endpoint
 OPENAI_BASE_URL = "http://localhost:11434/v1"
-OPENAI_API_KEY = "ollama"  # Ollama doesn't require a real key
+OPENAI_API_KEY = "ollama"
 
-# Model configuration
 CHAT_MODEL = "qwen2.5:3b"
 EMBED_MODEL = "nomic-embed-text"
 
-# RAG configuration
 CHROMA_DIR = "./chroma_db"
-COLLECTION_NAME = "car_sales_docs"
+COLLECTION_NAME = "banking_docs"
 
-# System prompt for the agent
-SYSTEM_PROMPT = """You are a helpful assistant for a car sales portal.
+SYSTEM_PROMPT = """You are a helpful virtual assistant for a retail bank.
 
 Your capabilities:
-- Use retrieved knowledge for dealership policies and general FAQs
-- Use tools for inventory, pricing, payments, trade-ins, hours, and appointments
-- Do not invent exact inventory facts
+- Use retrieved knowledge for bank policies, fees, and general FAQs
+- Use tools for account balances, transactions, loans, products, and branch info
+- Never invent account balances or transaction details
 - If a tool is available for a question, prefer using it
+- Protect customer privacy - only share information about their own accounts
 
-Always be helpful, professional, and accurate."""
+Always be helpful, professional, secure, and accurate."""
 
 
 # =============================================================================
 # OPENAI CLIENT SETUP
 # =============================================================================
 
-# Initialize OpenAI client pointing to Ollama
 client = AsyncOpenAI(
     base_url=OPENAI_BASE_URL,
     api_key=OPENAI_API_KEY,
@@ -197,12 +194,10 @@ def format_sse(event: str, data: dict) -> str:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize ChromaDB and MCP server on startup."""
-    # Initialize ChromaDB
     chroma = chromadb.PersistentClient(path=CHROMA_DIR)
     collection = chroma.get_or_create_collection(name=COLLECTION_NAME)
     app.state.collection = collection
 
-    # Initialize MCP server connection
     server_params = StdioServerParameters(
         command=sys.executable,
         args=["mcp_server.py"],
@@ -215,7 +210,6 @@ async def lifespan(app: FastAPI):
     session = await session_ctx.__aenter__()
     await session.initialize()
 
-    # Get available tools
     tools_result = await session.list_tools()
     app.state.mcp_session = session
     app.state.mcp_session_ctx = session_ctx
@@ -224,7 +218,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Cleanup
     await session_ctx.__aexit__(None, None, None)
     await stdio_ctx.__aexit__(None, None, None)
 
@@ -234,15 +227,14 @@ async def lifespan(app: FastAPI):
 # =============================================================================
 
 app = FastAPI(
-    title="Car Sales Portal Chatbot",
-    description="AI-powered chatbot for car dealership operations",
+    title="Banking & Finance Portal Chatbot",
+    description="AI-powered chatbot for banking operations",
     version="1.0.0",
     lifespan=lifespan,
 )
 
 templates = Jinja2Templates(directory="templates")
 
-# Conversation history (in-memory for demo)
 conversation: list[dict[str, Any]] = [
     {"role": "system", "content": SYSTEM_PROMPT}
 ]
@@ -269,98 +261,6 @@ async def health():
     }
 
 
-@app.post("/chat")
-async def chat_api(payload: ChatIn):
-    """
-    Main chat endpoint with RAG and tool execution.
-
-    This endpoint implements an agentic loop:
-    1. Retrieve relevant context from knowledge base
-    2. Send message to LLM with available tools
-    3. Execute any tool calls via MCP
-    4. Continue until LLM produces final response
-    """
-    user_text = payload.message.strip()
-    if not user_text:
-        return JSONResponse({"reply": "Please type a message."})
-
-    # RAG: Retrieve relevant context
-    rag_context = await retrieve_context(user_text, app.state.collection)
-
-    # Augment user message with context
-    user_message = user_text
-    if rag_context:
-        user_message = (
-            f"Customer message:\n{user_text}\n\n"
-            f"Knowledge base context:\n{rag_context}\n\n"
-            "Use the knowledge base context when it is relevant."
-        )
-
-    conversation.append({"role": "user", "content": user_message})
-
-    # Initial LLM call
-    assistant_message = await chat_completion(conversation, app.state.tools)
-
-    # Convert to dict for storage
-    msg_dict = {
-        "role": "assistant",
-        "content": assistant_message.content or "",
-    }
-    if assistant_message.tool_calls:
-        msg_dict["tool_calls"] = [
-            {
-                "id": tc.id,
-                "type": "function",
-                "function": {
-                    "name": tc.function.name,
-                    "arguments": tc.function.arguments,
-                }
-            }
-            for tc in assistant_message.tool_calls
-        ]
-    conversation.append(msg_dict)
-
-    # Agentic loop: Execute tools until no more tool calls
-    while assistant_message.tool_calls:
-        for tool_call in assistant_message.tool_calls:
-            fn_name = tool_call.function.name
-            fn_args = json.loads(tool_call.function.arguments)
-
-            # Execute tool via MCP
-            mcp_result = await app.state.mcp_session.call_tool(fn_name, fn_args)
-            result_text = extract_text_from_mcp_result(mcp_result)
-
-            # Add tool result to conversation
-            conversation.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": result_text,
-            })
-
-        # Get next response
-        assistant_message = await chat_completion(conversation, app.state.tools)
-
-        msg_dict = {
-            "role": "assistant",
-            "content": assistant_message.content or "",
-        }
-        if assistant_message.tool_calls:
-            msg_dict["tool_calls"] = [
-                {
-                    "id": tc.id,
-                    "type": "function",
-                    "function": {
-                        "name": tc.function.name,
-                        "arguments": tc.function.arguments,
-                    }
-                }
-                for tc in assistant_message.tool_calls
-            ]
-        conversation.append(msg_dict)
-
-    return {"reply": assistant_message.content or ""}
-
-
 @app.get("/api/tools")
 async def get_tools():
     """Return list of available MCP tools with their schemas."""
@@ -377,25 +277,26 @@ async def get_tools():
 @app.post("/chat/stream")
 async def chat_stream_api(payload: ChatIn):
     """
-    Streaming chat endpoint with verbose status updates.
+    Streaming chat endpoint with EXTREMELY verbose status updates.
 
     This endpoint uses Server-Sent Events (SSE) to stream:
-    - Status updates (RAG retrieval, tool execution, etc.)
-    - Content tokens as they're generated
-    - Final completion signal
+    - Full API request/response bodies
+    - curl commands and Python equivalents
+    - MCP JSON-RPC structures
+    - Timing breakdowns
+    - Educational explanations
 
     Event types:
-    - status: System status updates (type, message, details)
+    - pipeline_start: Full architecture overview
+    - embedding_start/complete: Embedding API details
+    - rag_start/complete: ChromaDB search details
+    - context_injection: Prompt augmentation
+    - llm_start: LLM API call with full body
+    - tool_call/result: MCP tool execution
     - content: Streamed response tokens
-    - tool_call: Tool being executed
-    - tool_result: Tool execution result
-    - done: Stream complete
-    - error: Error occurred
+    - done: Pipeline summary with learnings
     """
-    import time
     user_text = payload.message.strip()
-
-    # Get tool names and full tool definitions for reference
     tool_names = [t["function"]["name"] for t in app.state.tools]
     tools_full = app.state.tools
 
@@ -409,7 +310,9 @@ async def chat_stream_api(payload: ChatIn):
 
         pipeline_start_time = time.time()
 
-        # Step 0: Explain the pipeline with full architecture details
+        # =====================================================================
+        # STEP 0: PIPELINE OVERVIEW
+        # =====================================================================
         yield format_sse("pipeline_start", {
             "type": "pipeline_info",
             "message": "🚀 Starting AI Pipeline",
@@ -449,7 +352,7 @@ async def chat_stream_api(payload: ChatIn):
             "message": "📊 Step 1a: Generating Query Embedding",
             "explanation": f"Converting your question into a numerical vector (embedding) that captures its semantic meaning. This allows us to find similar documents even if they don't share exact keywords.\n\nThe embedding model '{EMBED_MODEL}' converts text into a 768-dimensional vector where similar meanings cluster together in vector space.",
             "details": {
-                "why_this_step": "Embeddings enable semantic search. 'Show me SUVs' will match documents about 'Sport Utility Vehicles' even without exact word matches.",
+                "why_this_step": "Embeddings enable semantic search. 'What's my balance' will match documents about 'account funds' even without exact word matches.",
                 "model": EMBED_MODEL,
                 "input_text": user_text,
                 "input_length_chars": len(user_text),
@@ -506,7 +409,7 @@ embedding = response.data[0].embedding  # 768-dim vector'''
             "message": "🔍 Step 1b: RAG Vector Search in ChromaDB",
             "explanation": f"Now we search ChromaDB for documents with similar embeddings. ChromaDB uses cosine similarity to find the top-k most similar document chunks.\n\nCosine similarity measures the angle between two vectors - vectors pointing in similar directions (similar meaning) have similarity close to 1.0.",
             "details": {
-                "why_this_step": "RAG (Retrieval-Augmented Generation) grounds the LLM's response in actual data, reducing hallucinations and providing accurate information.",
+                "why_this_step": "RAG (Retrieval-Augmented Generation) grounds the LLM's response in actual bank policy data, reducing hallucinations and providing accurate information.",
                 "query": user_text,
                 "vector_store": "ChromaDB",
                 "collection": COLLECTION_NAME,
@@ -591,41 +494,6 @@ results = collection.query(
                 }
             })
 
-        if rag_context:
-            # Extract sources and chunks from context
-            sources = []
-            chunks = []
-            current_chunk = []
-            for line in rag_context.split("\n"):
-                if line.startswith("[source:"):
-                    if current_chunk:
-                        chunks.append("\n".join(current_chunk))
-                        current_chunk = []
-                    sources.append(line.split("]")[0].replace("[source: ", ""))
-                else:
-                    current_chunk.append(line)
-            if current_chunk:
-                chunks.append("\n".join(current_chunk))
-
-            yield format_sse("rag_complete", {
-                "type": "rag_complete",
-                "message": f"Found {len(sources)} relevant document chunks",
-                "explanation": f"ChromaDB returned {len(sources)} text chunks that are semantically similar to your query. These will be injected into the LLM prompt to provide context.",
-                "details": {
-                    "sources": sources,
-                    "num_chunks": len(chunks),
-                    "total_context_chars": len(rag_context),
-                    "chunks_preview": [c[:150] + "..." if len(c) > 150 else c for c in chunks[:3]]
-                }
-            })
-        else:
-            yield format_sse("rag_complete", {
-                "type": "rag_complete",
-                "message": "No relevant documents found in knowledge base",
-                "explanation": "The vector similarity search didn't find any documents above the relevance threshold. The LLM will rely on its training and available tools.",
-                "details": {"searched_collection": COLLECTION_NAME}
-            })
-
         # =====================================================================
         # STEP 3: CONTEXT INJECTION (Prompt Augmentation)
         # =====================================================================
@@ -642,7 +510,7 @@ results = collection.query(
                 "message": "📝 Step 2: Context Injection (Prompt Augmentation)",
                 "explanation": "The retrieved documents are now prepended to your message. This is the 'Augmented' part of RAG - we're augmenting your prompt with retrieved knowledge.\n\nThe LLM will see:\n1. System prompt (defining its role)\n2. Your message + RAG context\n3. Tool definitions (what it can call)",
                 "details": {
-                    "why_this_step": "By injecting relevant context, we give the LLM specific information to reference, making responses more accurate and grounded in actual data.",
+                    "why_this_step": "By injecting relevant context, we give the LLM specific bank policy information to reference, making responses more accurate and grounded in actual data.",
                     "original_message": user_text,
                     "original_length": len(user_text),
                     "augmented_length": len(user_message),
@@ -691,7 +559,7 @@ results = collection.query(
         yield format_sse("llm_start", {
             "type": "llm_start",
             "message": "🤖 Step 3: LLM Inference with Tool Awareness",
-            "explanation": f"Sending the augmented prompt to {CHAT_MODEL} via Ollama's OpenAI-compatible API. The model will:\n\n1. Read the system prompt to understand its role\n2. Process the conversation history\n3. See the {len(tool_names)} available tools and their schemas\n4. Decide whether to respond directly OR call a tool\n\nIf it needs real-time data (inventory, prices, etc.), it will output a tool_call instead of text.",
+            "explanation": f"Sending the augmented prompt to {CHAT_MODEL} via Ollama's OpenAI-compatible API. The model will:\n\n1. Read the system prompt to understand its role\n2. Process the conversation history\n3. See the {len(tool_names)} available banking tools and their schemas\n4. Decide whether to respond directly OR call a tool\n\nIf it needs real-time data (balances, transactions, etc.), it will output a tool_call instead of text.",
             "details": {
                 "why_this_step": "The LLM acts as the 'brain' - it understands your question, decides if tools are needed, and generates the response.",
                 "model": CHAT_MODEL,
@@ -1057,10 +925,6 @@ result = await session.call_tool("{fn_name}", {json.dumps(fn_args)})'''
     )
 
 
-# =============================================================================
-# MAIN ENTRY POINT
-# =============================================================================
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

@@ -211,14 +211,25 @@
 
     /* Sidebar */
     .sidebar {
-      width: 420px; background: var(--bg-dark); color: var(--text-primary);
-      display: flex; flex-direction: column; border-left: 1px solid var(--border);
+      width: 480px;
+      min-width: 480px;
+      max-width: 480px;
+      flex-shrink: 0;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
     }
 
     .sidebar-header {
-      padding: 14px 18px; background: var(--bg-darker);
+      padding: 14px 18px;
+      background: var(--bg-darker);
       border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
     .sidebar-header .icon {
       width: 10px; height: 10px; background: var(--accent);
@@ -237,13 +248,22 @@
     }
     .clear-btn:hover { background: var(--border); color: var(--text-primary); }
 
-    .sidebar-content { flex: 1; overflow-y: auto; padding: 12px; }
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px;
+    }
 
     /* Collapsible Status Items */
     .status-item {
-      margin-bottom: 10px; background: var(--bg-card); border-radius: 10px;
-      border-left: 4px solid var(--border); animation: slideIn 0.3s ease-out;
+      margin-bottom: 10px;
+      background: var(--bg-card);
+      border-radius: 10px;
+      border-left: 4px solid var(--border);
+      animation: slideIn 0.3s ease-out;
       overflow: hidden;
+      flex-shrink: 0;
     }
     @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
 
@@ -275,8 +295,12 @@
       font-family: 'JetBrains Mono', monospace; margin-right: 8px;
     }
     .status-item.pipeline .badge { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
+    .status-item.embed .badge { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
     .status-item.rag .badge { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .status-item.context .badge { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
     .status-item.llm .badge { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .status-item.stream .badge { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
+    .status-item.loop .badge { background: rgba(251, 146, 60, 0.2); color: #fb923c; }
     .status-item.mcp .badge { background: rgba(16, 185, 129, 0.2); color: #34d399; }
     .status-item.tool .badge { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
     .status-item.error .badge { background: rgba(239, 68, 68, 0.2); color: #f87171; }
@@ -289,10 +313,15 @@
     }
 
     .status-body {
-      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
       background: rgba(0,0,0,0.2);
     }
-    .status-item.expanded .status-body { max-height: 600px; overflow-y: auto; }
+    .status-item.expanded .status-body {
+      max-height: 800px;
+      overflow-y: auto;
+    }
 
     .status-details {
       padding: 12px 14px; font-size: 0.75rem;
@@ -306,12 +335,55 @@
       padding: 6px 10px; border-radius: 6px; display: block;
       word-break: break-all; white-space: pre-wrap;
     }
-    .detail-value.curl {
-      color: #fbbf24; font-size: 0.7rem; max-height: 80px; overflow-y: auto;
+    .detail-value.curl, .detail-value.curl-cmd {
+      color: #fbbf24; font-size: 0.7rem; max-height: 120px; overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace; background: rgba(0,0,0,0.5);
     }
-    .detail-value.json { color: #34d399; max-height: 150px; overflow-y: auto; }
+    .detail-value.python-code {
+      color: #60a5fa; font-size: 0.7rem; max-height: 150px; overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace; background: rgba(0,0,0,0.5);
+    }
+    .detail-value.json, .detail-value.json-block {
+      color: #34d399; max-height: 200px; overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      background: rgba(0,0,0,0.5);
+    }
+    .detail-value.number-array {
+      color: #f472b6; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    }
+    .detail-value.result-full {
+      color: #a5f3fc; max-height: 200px; overflow-y: auto;
+      background: rgba(0,0,0,0.4);
+    }
+    .detail-value.explanation-text {
+      color: #fde68a; font-style: italic; line-height: 1.5;
+    }
+    .detail-value.results-list { background: none; padding: 4px 0; }
+    .detail-value.results-list .result-item {
+      background: rgba(0,0,0,0.3); margin-bottom: 8px; padding: 10px;
+      border-radius: 6px; border-left: 3px solid var(--accent-purple);
+    }
+    .detail-value.results-list .result-rank {
+      color: var(--accent-purple); font-weight: 600; margin-bottom: 4px;
+    }
+    .detail-value.results-list .result-content {
+      color: var(--text-secondary); font-size: 0.75rem; line-height: 1.4;
+    }
+    .detail-value.learning-list { background: none; padding: 4px 0; }
+    .detail-value.learning-list .learning-item {
+      color: #34d399; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .detail-value.messages-list { background: none; padding: 4px 0; }
+    .detail-value.messages-list .message-item {
+      padding: 6px 10px; margin-bottom: 4px; border-radius: 4px;
+      font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;
+    }
+    .detail-value.messages-list .message-item.user { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
+    .detail-value.messages-list .message-item.assistant { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .detail-value.messages-list .message-item.tool { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .detail-value.messages-list .message-item.system { background: rgba(148, 163, 184, 0.2); color: var(--text-secondary); }
     .detail-value.list { display: flex; flex-wrap: wrap; gap: 4px; background: none; padding: 4px 0; }
-    .detail-value.list span {
+    .detail-value.list span, .detail-value.list .list-item {
       background: rgba(99, 102, 241, 0.2); color: var(--primary-light);
       padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;
     }
@@ -514,17 +586,59 @@
         html += `<div class="detail-row">`;
         html += `<span class="detail-label">${formatKey(key)}</span>`;
 
-        if (key === 'curl_equivalent') {
-          html += `<span class="detail-value curl">${escapeHtml(String(value))}</span>`;
-        } else if (key === 'mcp_json_rpc' || key === 'arguments') {
-          html += `<span class="detail-value json">${escapeHtml(JSON.stringify(value, null, 2))}</span>`;
+        if (key === 'curl_command' || key === 'curl_equivalent') {
+          // Format curl commands with syntax highlighting
+          html += `<span class="detail-value curl-cmd">${escapeHtml(String(value))}</span>`;
+        } else if (key === 'equivalent_python' || key === 'python_mcp_call') {
+          // Format Python code
+          html += `<span class="detail-value python-code">${escapeHtml(String(value))}</span>`;
+        } else if (key === 'mcp_json_rpc' || key === 'mcp_request_full' || key === 'mcp_response_full' ||
+                   key === 'full_request_body' || key === 'arguments' || key === 'arguments_provided' ||
+                   key === 'tool_parameters_schema' || key === 'architecture' || key === 'prompt_structure' ||
+                   key === 'chromadb_query' || key === 'chromadb_raw_response' || key === 'api_response_format' ||
+                   key === 'stdio_communication' || key === 'mcp_protocol' || key === 'conversation_injection' ||
+                   key === 'tool_definitions' || key === 'timing' || key === 'pipeline_summary' ||
+                   key === 'conversation_state' || key === 'embedding_stats') {
+          // Format JSON objects with pretty printing
+          html += `<span class="detail-value json-block">${escapeHtml(JSON.stringify(value, null, 2))}</span>`;
+        } else if (key === 'results' && Array.isArray(value)) {
+          // Format RAG results specially
+          html += `<span class="detail-value results-list">`;
+          for (const result of value) {
+            html += `<div class="result-item">`;
+            html += `<div class="result-rank">#${result.rank} - ${result.source} (similarity: ${(result.similarity_score * 100).toFixed(1)}%)</div>`;
+            html += `<div class="result-content">${escapeHtml(result.content_preview || '')}</div>`;
+            html += `</div>`;
+          }
+          html += `</span>`;
+        } else if (key === 'what_you_learned' && Array.isArray(value)) {
+          // Format learning points
+          html += `<span class="detail-value learning-list">`;
+          for (const item of value) {
+            html += `<div class="learning-item">${escapeHtml(item)}</div>`;
+          }
+          html += `</span>`;
+        } else if (key === 'recent_messages' && Array.isArray(value)) {
+          // Format recent messages
+          html += `<span class="detail-value messages-list">`;
+          for (const msg of value) {
+            html += `<div class="message-item ${msg.role}">[${msg.role}] ${escapeHtml(msg.content || '(tool call)')}</div>`;
+          }
+          html += `</span>`;
         } else if (Array.isArray(value)) {
-          html += `<span class="detail-value list">${value.map(v => `<span>${escapeHtml(String(v))}</span>`).join('')}</span>`;
+          if (value.length > 0 && typeof value[0] === 'number') {
+            // Format number arrays (like embedding previews)
+            html += `<span class="detail-value number-array">[${value.slice(0, 10).map(v => typeof v === 'number' ? v.toFixed(6) : v).join(', ')}${value.length > 10 ? `, ... (${value.length} total)` : ''}]</span>`;
+          } else {
+            html += `<span class="detail-value list">${value.map(v => `<span class="list-item">${escapeHtml(typeof v === 'object' ? JSON.stringify(v) : String(v))}</span>`).join('')}</span>`;
+          }
         } else if (typeof value === 'object') {
-          html += `<span class="detail-value json">${escapeHtml(JSON.stringify(value, null, 2))}</span>`;
-        } else if (key === 'result_full' || key === 'chunks_preview') {
-          const strVal = Array.isArray(value) ? value.join('\n\n---\n\n') : String(value);
-          html += `<span class="detail-value json">${escapeHtml(strVal)}</span>`;
+          html += `<span class="detail-value json-block">${escapeHtml(JSON.stringify(value, null, 2))}</span>`;
+        } else if (key === 'result_full' || key === 'augmented_message_full') {
+          const strVal = String(value);
+          html += `<span class="detail-value result-full">${escapeHtml(strVal)}</span>`;
+        } else if (key === 'explanation' || key === 'why_this_step' || key === 'why_agentic') {
+          html += `<span class="detail-value explanation-text">${escapeHtml(String(value))}</span>`;
         } else {
           html += `<span class="detail-value">${escapeHtml(String(value))}</span>`;
         }
@@ -705,6 +819,12 @@
         case "pipeline_start":
           addStatus("pipeline", message, explanation, details);
           break;
+        case "embedding_start":
+          addStatus("embed", message, explanation, details);
+          break;
+        case "embedding_complete":
+          addStatus("embed", message, explanation, details);
+          break;
         case "rag_start":
           addStatus("rag", message, explanation, details);
           break;
@@ -714,13 +834,19 @@
           addStatus("rag", message, explanation, details);
           break;
         case "context_injection":
-          addStatus("rag", message, explanation, details);
+          addStatus("context", message, explanation, details);
           break;
         case "llm_start":
           addStatus("llm", message, explanation, details);
           break;
         case "llm_continue":
           addStatus("llm", message, explanation, details);
+          break;
+        case "streaming_start":
+          addStatus("stream", message, explanation, details);
+          break;
+        case "tool_loop_start":
+          addStatus("loop", message, explanation, details);
           break;
         case "tool_call":
           stats.tools++;

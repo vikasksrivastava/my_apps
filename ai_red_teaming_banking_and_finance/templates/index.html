@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureBank - AI Red Teaming Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --primary-light: #38bdf8;
+      --accent: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-blue: #3b82f6;
+      --accent-red: #ef4444;
+      --accent-teal: #14b8a6;
+      --bg-dark: #0c1929;
+      --bg-darker: #030712;
+      --bg-card: #1e3a5f;
+      --bg-light: #f0f9ff;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-dark: #1e293b;
+      --border: #1e3a5f;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-light);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-dark);
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 16px; }
+
+    .logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+
+    .header-title h1 { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); }
+    .header-title .subtitle { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+
+    .header-badge {
+      background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
+      color: white; padding: 6px 14px; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .main-container { display: flex; flex: 1; overflow: hidden; }
+
+    .chat-area {
+      flex: 1; display: flex; flex-direction: column;
+      padding: 20px;
+      background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+    }
+
+    #chat {
+      flex: 1; background: white; border-radius: 16px;
+      overflow-y: auto; padding: 20px; margin-bottom: 12px;
+      box-shadow: var(--shadow); border: 1px solid #e0f2fe;
+    }
+
+    .msg {
+      margin: 14px 0; padding: 16px 20px; border-radius: 16px;
+      line-height: 1.6; font-size: 0.95rem; max-width: 88%;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.user {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white; margin-left: auto; border-bottom-right-radius: 4px;
+    }
+
+    .msg.assistant {
+      background: #f8fafc; color: var(--text-dark);
+      border: 1px solid #e2e8f0; margin-right: auto; border-bottom-left-radius: 4px;
+    }
+
+    .msg .content { margin-top: 6px; }
+    .msg .content p { margin: 0.5em 0; }
+    .msg .content ul, .msg .content ol { margin: 0.5em 0; padding-left: 1.5em; }
+    .msg .content code {
+      background: rgba(0,0,0,0.06); padding: 2px 6px;
+      border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em;
+    }
+    .msg .content pre {
+      background: #1e293b; color: #e2e8f0; padding: 12px;
+      border-radius: 8px; overflow-x: auto; margin: 0.5em 0;
+    }
+    .msg .content pre code { background: none; padding: 0; color: inherit; }
+
+    .role-label {
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; opacity: 0.7;
+    }
+
+    .msg.streaming { border: 2px solid var(--primary-light); }
+
+    .input-area { display: flex; gap: 12px; }
+
+    #input {
+      flex: 1; padding: 14px 18px; border: 2px solid #e2e8f0;
+      border-radius: 12px; font-size: 1rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+
+    #sendBtn {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white; border: none; border-radius: 12px;
+      font-weight: 600; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s;
+    }
+    #sendBtn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+    #sendBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .examples-section {
+      margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;
+    }
+    .examples-header {
+      font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
+      margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .examples-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px;
+    }
+    .example-btn {
+      padding: 10px 14px; background: white; border: 1px solid #e2e8f0;
+      border-radius: 10px; font-size: 0.8rem; color: var(--text-dark);
+      cursor: pointer; text-align: left; transition: all 0.2s;
+    }
+    .example-btn:hover {
+      border-color: var(--primary); background: #f0f9ff;
+      transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    .example-btn .cat {
+      display: inline-block; font-size: 0.65rem; font-weight: 600;
+      color: var(--primary); margin-bottom: 4px; text-transform: uppercase;
+    }
+
+    /* Activity Sidebar */
+    .sidebar {
+      width: 480px;
+      min-width: 480px;
+      max-width: 480px;
+      background: var(--bg-dark);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 18px 20px;
+      background: var(--bg-darker);
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+    .sidebar-header h2 { color: var(--text-primary); font-size: 1rem; font-weight: 600; }
+    .sidebar-header.active h2::after {
+      content: ""; display: inline-block; width: 8px; height: 8px;
+      background: var(--accent); border-radius: 50%; margin-left: 10px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .clear-btn {
+      padding: 6px 14px; background: rgba(255,255,255,0.1); border: none;
+      border-radius: 6px; color: var(--text-secondary); cursor: pointer;
+      font-size: 0.75rem; transition: background 0.2s;
+    }
+    .clear-btn:hover { background: rgba(255,255,255,0.2); color: var(--text-primary); }
+
+    #statusLog {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px;
+    }
+
+    .status-item {
+      background: var(--bg-card);
+      border-radius: 10px;
+      border-left: 3px solid var(--primary);
+      overflow: hidden;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .status-header {
+      padding: 12px 14px; cursor: pointer;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .status-header:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .status-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .status-title .badge {
+      padding: 3px 8px; border-radius: 4px; font-size: 0.65rem;
+      font-weight: 600; text-transform: uppercase;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .status-item.pipeline .badge { background: rgba(14, 165, 233, 0.2); color: var(--primary-light); }
+    .status-item.embed .badge { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+    .status-item.rag .badge { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .status-item.context .badge { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .status-item.llm .badge { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .status-item.stream .badge { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
+    .status-item.loop .badge { background: rgba(251, 146, 60, 0.2); color: #fb923c; }
+    .status-item.mcp .badge { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .status-item.tool .badge { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .status-item.error .badge { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .status-item.done .badge { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+    .status-message {
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      font-weight: 500;
+      word-wrap: break-word;
+      flex: 1;
+    }
+    .status-explanation {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      line-height: 1.4;
+      margin-top: 4px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .status-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: rgba(0,0,0,0.2);
+    }
+    .status-item.expanded .status-body {
+      max-height: 800px;
+      overflow-y: auto;
+    }
+    .status-details {
+      padding: 12px 14px;
+      font-size: 0.75rem;
+    }
+
+    .detail-row { margin-bottom: 10px; }
+    .detail-label {
+      color: var(--accent-teal);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .detail-value {
+      color: var(--text-primary);
+      background: rgba(0,0,0,0.3);
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: block;
+      word-break: break-word;
+      white-space: pre-wrap;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .detail-value.json {
+      color: #34d399;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      background: rgba(0,0,0,0.5);
+    }
+    .detail-value.list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: none;
+      padding: 4px 0;
+    }
+    .detail-value.list span {
+      background: rgba(14, 165, 233, 0.2);
+      color: var(--primary-light);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+    }
+
+    .stats-bar {
+      padding: 12px 18px;
+      background: var(--bg-darker);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .stat { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-secondary); }
+    .stat-value { color: var(--accent); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">🏦</div>
+      <div class="header-title">
+        <h1>SecureBank Virtual Assistant</h1>
+        <div class="subtitle">AI Red Teaming Demo • Banking & Finance</div>
+      </div>
+    </div>
+    <div class="header-badge">AI Red Teaming Demo</div>
+  </header>
+
+  <div class="main-container">
+    <div class="chat-area">
+      <div id="chat"></div>
+      <div class="input-area">
+        <input type="text" id="input" placeholder="Ask about accounts, transactions, loans, or products..." />
+        <button id="sendBtn">Send</button>
+      </div>
+      <div class="examples-section">
+        <div class="examples-header">💡 Try These Examples</div>
+        <div class="examples-grid" id="examplesGrid"></div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-header" id="sidebarHeader">
+        <h2>Activity Monitor</h2>
+        <button class="clear-btn" onclick="clearStatus()">Clear</button>
+      </div>
+      <div id="statusLog"></div>
+      <div class="stats-bar">
+        <div class="stat">RAG: <span class="stat-value" id="statRag">0</span></div>
+        <div class="stat">Tools: <span class="stat-value" id="statTools">0</span></div>
+        <div class="stat">Tokens: <span class="stat-value" id="statTokens">0</span></div>
+        <div class="stat">Loops: <span class="stat-value" id="statIterations">0</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusLog = document.getElementById("statusLog");
+    const sidebarHeader = document.getElementById("sidebarHeader");
+    const examplesGrid = document.getElementById("examplesGrid");
+
+    let isStreaming = false;
+    let currentAssistantDiv = null;
+    let stats = { rag: 0, tools: 0, tokens: 0, iterations: 0 };
+
+    const examplePrompts = [
+      // Account queries
+      { category: "Accounts", text: "What is the balance for account ACC001?" },
+      { category: "Accounts", text: "Show me all accounts for John Smith" },
+      { category: "Accounts", text: "Is account ACC012 active or frozen?" },
+      { category: "Accounts", text: "Get details for account ACC004" },
+      { category: "Accounts", text: "What accounts does Sarah Johnson have?" },
+
+      // Transaction queries
+      { category: "Transactions", text: "Show recent transactions for ACC001" },
+      { category: "Transactions", text: "Get spending summary for ACC003" },
+      { category: "Transactions", text: "What did I spend on last month for ACC007?" },
+      { category: "Transactions", text: "Show all purchases for account ACC005" },
+
+      // Transfer queries
+      { category: "Transfers", text: "Transfer $500 from ACC001 to ACC002" },
+      { category: "Transfers", text: "Move $1000 from checking to savings for John Smith" },
+
+      // Loan queries
+      { category: "Loans", text: "Show loan details for LOAN001" },
+      { category: "Loans", text: "What loans does Michael Chen have?" },
+      { category: "Loans", text: "Get payoff quote for LOAN003" },
+      { category: "Loans", text: "Calculate payment for $30,000 loan at 7% for 60 months" },
+      { category: "Loans", text: "Estimate auto loan for $45,000 with $5,000 down" },
+
+      // Product queries
+      { category: "Products", text: "What savings accounts do you offer?" },
+      { category: "Products", text: "Compare PROD003 and PROD004" },
+      { category: "Products", text: "Show me your credit cards" },
+      { category: "Products", text: "What loan products are available?" },
+      { category: "Products", text: "Tell me about the High-Yield Savings account" },
+      { category: "Products", text: "What CD rates do you offer?" },
+
+      // General queries
+      { category: "General", text: "What are your branch hours?" },
+      { category: "General", text: "What are current interest rates?" },
+      { category: "General", text: "I lost my debit card for ACC001" },
+      { category: "General", text: "How do I contact customer service?" },
+
+      // Policy questions
+      { category: "Policy", text: "What are your overdraft fees?" },
+      { category: "Policy", text: "How does mobile check deposit work?" },
+      { category: "Policy", text: "What is the FDIC insurance limit?" },
+      { category: "Policy", text: "How do I dispute a transaction?" },
+    ];
+
+    function populateExamples() {
+      examplesGrid.innerHTML = '';
+      const shuffled = [...examplePrompts].sort(() => Math.random() - 0.5).slice(0, 12);
+      shuffled.forEach(ex => {
+        const btn = document.createElement('button');
+        btn.className = 'example-btn';
+        btn.innerHTML = `<span class="cat">${ex.category}</span><div>${ex.text}</div>`;
+        btn.onclick = () => {
+          input.value = ex.text;
+          sendMessage();
+        };
+        examplesGrid.appendChild(btn);
+      });
+    }
+    populateExamples();
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateStats() {
+      document.getElementById("statRag").textContent = stats.rag;
+      document.getElementById("statTools").textContent = stats.tools;
+      document.getElementById("statTokens").textContent = stats.tokens;
+      document.getElementById("statIterations").textContent = stats.iterations;
+    }
+
+    function addStatus(type, message, explanation = '', details = {}) {
+      const div = document.createElement("div");
+      div.className = `status-item ${type}`;
+      const hasDetails = Object.keys(details).length > 0;
+
+      div.innerHTML = `
+        <div class="status-header" onclick="toggleStatus(this)">
+          <div class="status-title">
+            <span class="badge">${type}</span>
+            <div class="status-message">${escapeHtml(message)}</div>
+          </div>
+          ${explanation ? `<div class="status-explanation">${escapeHtml(explanation)}</div>` : ''}
+        </div>
+        ${hasDetails ? `<div class="status-body"><div class="status-details">${formatDetails(details)}</div></div>` : ''}
+      `;
+
+      statusLog.appendChild(div);
+      statusLog.scrollTop = statusLog.scrollHeight;
+    }
+
+    function toggleStatus(header) {
+      const item = header.closest('.status-item');
+      item.classList.toggle('expanded');
+    }
+
+    function formatDetails(details) {
+      if (!details || Object.keys(details).length === 0) return "";
+      let html = '';
+      for (const [key, value] of Object.entries(details)) {
+        if (value === null || value === undefined) continue;
+        html += `<div class="detail-row">`;
+        html += `<span class="detail-label">${formatKey(key)}</span>`;
+
+        if (Array.isArray(value)) {
+          html += `<span class="detail-value list">${value.map(v => `<span>${escapeHtml(typeof v === 'object' ? JSON.stringify(v) : String(v))}</span>`).join('')}</span>`;
+        } else if (typeof value === 'object') {
+          html += `<span class="detail-value json">${escapeHtml(JSON.stringify(value, null, 2))}</span>`;
+        } else {
+          html += `<span class="detail-value">${escapeHtml(String(value))}</span>`;
+        }
+        html += `</div>`;
+      }
+      return html;
+    }
+
+    function formatKey(key) {
+      return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function clearStatus() {
+      statusLog.innerHTML = "";
+      stats = { rag: 0, tools: 0, tokens: 0, iterations: 0 };
+      updateStats();
+    }
+
+    function setStreaming(active) {
+      isStreaming = active;
+      input.disabled = active;
+      sendBtn.disabled = active;
+      if (active) {
+        sidebarHeader.classList.add("active");
+        sendBtn.textContent = "Processing...";
+      } else {
+        sidebarHeader.classList.remove("active");
+        sendBtn.textContent = "Send";
+      }
+    }
+
+    function add(role, text, streaming = false) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}` + (streaming ? " streaming" : "");
+      const renderedContent = role === 'assistant' ? marked.parse(text) : escapeHtml(text);
+      div.innerHTML = `
+        <span class="role-label">${role === "user" ? "You" : "Assistant"}</span>
+        <div class="content">${renderedContent}</div>
+      `;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    function updateAssistantMessage(div, text, final = false) {
+      const contentDiv = div.querySelector('.content');
+      contentDiv.innerHTML = marked.parse(text);
+      if (final) div.classList.remove('streaming');
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text || isStreaming) return;
+
+      add("user", text);
+      input.value = "";
+      setStreaming(true);
+
+      try {
+        const response = await fetch("/chat/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let assistantText = "";
+        currentAssistantDiv = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          let eventType = "";
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              eventType = line.substring(7);
+            } else if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.substring(6));
+                handleEvent(eventType, data);
+
+                if (eventType === "content") {
+                  stats.tokens++;
+                  updateStats();
+                  assistantText += data.token;
+                  if (!currentAssistantDiv) {
+                    currentAssistantDiv = add("assistant", assistantText, true);
+                  } else {
+                    updateAssistantMessage(currentAssistantDiv, assistantText, false);
+                  }
+                } else if (eventType === "done") {
+                  if (currentAssistantDiv) {
+                    updateAssistantMessage(currentAssistantDiv, assistantText, true);
+                  } else if (assistantText === "") {
+                    add("assistant", "(no response)");
+                  }
+                  if (data.tools_executed) {
+                    stats.iterations = data.tools_executed;
+                    updateStats();
+                  }
+                }
+              } catch (e) {
+                console.error('Parse error:', e);
+              }
+            }
+          }
+        }
+
+      } catch (e) {
+        addStatus("error", "Connection error", e.message);
+        add("assistant", "Error contacting server.");
+      } finally {
+        setStreaming(false);
+        currentAssistantDiv = null;
+      }
+    }
+
+    function handleEvent(eventType, data) {
+      const explanation = data.explanation || '';
+      const message = data.message || eventType;
+      const details = data.details || {};
+
+      switch (eventType) {
+        case "pipeline_start":
+          addStatus("pipeline", message, explanation, details);
+          break;
+        case "embedding_start":
+          addStatus("embed", message, explanation, details);
+          break;
+        case "embedding_complete":
+          addStatus("embed", message, explanation, details);
+          break;
+        case "rag_start":
+          addStatus("rag", message, explanation, details);
+          break;
+        case "rag_complete":
+          stats.rag++;
+          updateStats();
+          addStatus("rag", message, explanation, details);
+          break;
+        case "context_injection":
+          addStatus("context", message, explanation, details);
+          break;
+        case "llm_start":
+          addStatus("llm", message, explanation, details);
+          break;
+        case "llm_continue":
+          addStatus("llm", message, explanation, details);
+          break;
+        case "streaming_start":
+          addStatus("stream", message, explanation, details);
+          break;
+        case "tool_loop_start":
+          addStatus("loop", message, explanation, details);
+          break;
+        case "tool_call":
+          stats.tools++;
+          updateStats();
+          addStatus("tool", message, explanation, details);
+          break;
+        case "tool_result":
+          addStatus("mcp", message, explanation, details);
+          break;
+        case "error":
+          addStatus("error", message, explanation, details);
+          break;
+        case "done":
+          addStatus("done", message, explanation, details);
+          break;
+        default:
+          if (data.type) {
+            addStatus(data.type.split('_')[0] || 'llm', message, explanation, details);
+          }
+      }
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !isStreaming) sendMessage();
+    });
+  </script>
+</body>
+</html>

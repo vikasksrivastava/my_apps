@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureBank - Financial Services Portal</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Header Bar -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">🏦</span>
+        <span class="logo-text">SecureBank</span>
+        <span class="logo-subtitle">Financial Services</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="search-bar">
+        <input type="text" placeholder="Search transactions, accounts, or payees..." id="globalSearch">
+        <button class="search-btn">Search</button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="header-alerts">
+        <button class="alert-btn critical" onclick="handleFraudAlert()">
+          <span class="alert-icon">🚨</span> Fraud Alert
+        </button>
+      </div>
+      <div class="user-info">
+        <span class="user-name">Michael Anderson</span>
+        <span class="user-role">Premium Member</span>
+      </div>
+      <button class="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="main-nav">
+    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+    <button class="nav-tab" data-tab="accounts">Accounts</button>
+    <button class="nav-tab" data-tab="transfers">Transfers</button>
+    <button class="nav-tab" data-tab="investments">Investments</button>
+    <button class="nav-tab" data-tab="loans">Loans</button>
+    <button class="nav-tab" data-tab="cards">Cards</button>
+  </nav>
+
+  <!-- RUM Demo Info Banner -->
+  <div class="rum-info-banner">
+    <div class="rum-info-content">
+      <h3>🔍 Real User Monitoring Demo - Financial Services Portal</h3>
+      <p><strong>Critical banking operations</strong> (Wire Transfers, Stock Trading, Loan Applications) have a <strong>6-19 second delay</strong> to simulate performance issues.</p>
+      <div class="rum-metrics">
+        <span class="metric-badge">TTFB</span>
+        <span class="metric-badge">LCP</span>
+        <span class="metric-badge">INP</span>
+        <span class="metric-badge">FCP</span>
+        <span class="metric-badge">CLS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Left Sidebar - Quick Actions -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Quick Actions</h3>
+        <button class="action-btn primary" onclick="openTransferModal()">
+          <span>💸</span> Transfer Money
+        </button>
+        <button class="action-btn" onclick="openPayBillModal()">
+          <span>📄</span> Pay Bill
+        </button>
+        <button class="action-btn" onclick="openInvestModal()">
+          <span>📈</span> Buy/Sell Stock
+        </button>
+        <button class="action-btn" onclick="openLoanModal()">
+          <span>🏠</span> Apply for Loan
+        </button>
+        <button class="action-btn" onclick="openMortgageCalcModal()">
+          <span>🧮</span> Mortgage Calculator
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Financial Summary</h3>
+        <div class="stat-item">
+          <span class="stat-label">Total Assets</span>
+          <span class="stat-value success">$185,623.47</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Monthly Spending</span>
+          <span class="stat-value warning">$4,520.33</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Investment Gain</span>
+          <span class="stat-value success">+2.34%</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Credit Score</span>
+          <span class="stat-value">782</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Dashboard Area -->
+    <section class="dashboard">
+      <h2>My Accounts</h2>
+
+      <!-- Account Cards Grid -->
+      <div class="accounts-grid">
+        <!-- Checking Account -->
+        <div class="account-card checking">
+          <div class="account-header">
+            <div class="account-type">CHECKING</div>
+            <span class="account-number">****4521</span>
+          </div>
+          <div class="account-info">
+            <h3>Primary Checking</h3>
+            <p class="account-id">Account: CHK-001-4521</p>
+            <div class="account-balance">
+              <span class="balance-label">Available Balance</span>
+              <span class="balance-amount">$12,547.82</span>
+            </div>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-small" onclick="viewAccountDetails('CHK-001', 'Primary Checking')">View Details</button>
+            <button class="btn btn-small" onclick="viewTransactions('CHK-001', 'Primary Checking')">Transactions</button>
+            <button class="btn btn-small primary" onclick="internalTransfer('CHK-001', 'Primary Checking')">Transfer</button>
+          </div>
+        </div>
+
+        <!-- Savings Account -->
+        <div class="account-card savings">
+          <div class="account-header">
+            <div class="account-type savings">SAVINGS</div>
+            <span class="account-number">****7823</span>
+          </div>
+          <div class="account-info">
+            <h3>High-Yield Savings</h3>
+            <p class="account-id">Account: SAV-001-7823</p>
+            <div class="account-balance">
+              <span class="balance-label">Available Balance</span>
+              <span class="balance-amount">$45,230.15</span>
+            </div>
+            <p class="account-apy">APY: 4.25%</p>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-small" onclick="viewAccountDetails('SAV-001', 'High-Yield Savings')">View Details</button>
+            <button class="btn btn-small" onclick="viewStatements('SAV-001', 'High-Yield Savings')">Statements</button>
+            <button class="btn btn-small primary" onclick="internalTransfer('SAV-001', 'High-Yield Savings')">Transfer</button>
+          </div>
+        </div>
+
+        <!-- Investment Account -->
+        <div class="account-card investment">
+          <div class="account-header">
+            <div class="account-type investment">INVESTMENT</div>
+            <span class="account-number">****9102</span>
+          </div>
+          <div class="account-info">
+            <h3>Brokerage Account</h3>
+            <p class="account-id">Account: INV-001-9102</p>
+            <div class="account-balance">
+              <span class="balance-label">Portfolio Value</span>
+              <span class="balance-amount">$127,845.50</span>
+            </div>
+            <p class="account-gain success">+$2,847.23 (+2.28%) today</p>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-small" onclick="viewPortfolio('INV-001', 'Brokerage Account')">Portfolio</button>
+            <button class="btn btn-small" onclick="viewMarketData()">Market Data</button>
+            <button class="btn btn-small primary" onclick="openInvestModal()">Trade</button>
+          </div>
+        </div>
+
+        <!-- Credit Card -->
+        <div class="account-card credit">
+          <div class="account-header">
+            <div class="account-type credit">CREDIT CARD</div>
+            <span class="account-number">****8834</span>
+          </div>
+          <div class="account-info">
+            <h3>Platinum Rewards Card</h3>
+            <p class="account-id">Card: ****-****-****-8834</p>
+            <div class="account-balance">
+              <span class="balance-label">Current Balance</span>
+              <span class="balance-amount warning">$3,241.55</span>
+            </div>
+            <p class="credit-limit">Available Credit: $16,758.45 / $20,000</p>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-small" onclick="viewCardDetails('CC-001', 'Platinum Rewards')">Card Details</button>
+            <button class="btn btn-small" onclick="disputeTransaction('CC-001', 'Platinum Rewards')">Dispute</button>
+            <button class="btn btn-small primary" onclick="payBill('CC-001', 'Platinum Rewards')">Pay Balance</button>
+          </div>
+        </div>
+
+        <!-- Mortgage Loan -->
+        <div class="account-card loan">
+          <div class="account-header">
+            <div class="account-type loan">MORTGAGE</div>
+            <span class="account-number">MTG-2019</span>
+          </div>
+          <div class="account-info">
+            <h3>Home Mortgage</h3>
+            <p class="account-id">Loan: MTG-001-2019</p>
+            <div class="account-balance">
+              <span class="balance-label">Remaining Balance</span>
+              <span class="balance-amount">$287,432.18</span>
+            </div>
+            <p class="loan-payment">Next Payment: $2,145.00 due Jan 15</p>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-small" onclick="viewLoanDetails('MTG-001', 'Home Mortgage')">Loan Details</button>
+            <button class="btn btn-small" onclick="viewStatements('MTG-001', 'Home Mortgage')">Statements</button>
+            <button class="btn btn-small primary" onclick="makeLoanPayment('MTG-001', 'Home Mortgage')">Make Payment</button>
+          </div>
+        </div>
+
+        <!-- Auto Loan -->
+        <div class="account-card loan">
+          <div class="account-header">
+            <div class="account-type loan">AUTO LOAN</div>
+            <span class="account-number">AUTO-2023</span>
+          </div>
+          <div class="account-info">
+            <h3>Auto Loan - Tesla Model 3</h3>
+            <p class="account-id">Loan: AUTO-001-2023</p>
+            <div class="account-balance">
+              <span class="balance-label">Remaining Balance</span>
+              <span class="balance-amount">$28,450.00</span>
+            </div>
+            <p class="loan-payment">Next Payment: $485.00 due Jan 20</p>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-small" onclick="viewLoanDetails('AUTO-001', 'Auto Loan')">Loan Details</button>
+            <button class="btn btn-small" onclick="viewStatements('AUTO-001', 'Auto Loan')">Statements</button>
+            <button class="btn btn-small primary" onclick="makeLoanPayment('AUTO-001', 'Auto Loan')">Make Payment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions Section -->
+      <section class="transactions-section">
+        <h2>Recent Transactions</h2>
+        <div class="transactions-list">
+          <div class="transaction-item debit">
+            <div class="transaction-icon">🛒</div>
+            <div class="transaction-info">
+              <strong>Amazon.com</strong>
+              <span class="transaction-date">Jan 10, 2025 - 2:34 PM</span>
+            </div>
+            <div class="transaction-category">Shopping</div>
+            <div class="transaction-amount debit">-$127.43</div>
+            <button class="btn btn-small" onclick="disputeTransaction('TXN-001', 'Amazon.com')">Dispute</button>
+          </div>
+          <div class="transaction-item credit">
+            <div class="transaction-icon">💰</div>
+            <div class="transaction-info">
+              <strong>Direct Deposit - Employer</strong>
+              <span class="transaction-date">Jan 10, 2025 - 6:00 AM</span>
+            </div>
+            <div class="transaction-category">Income</div>
+            <div class="transaction-amount credit">+$4,250.00</div>
+            <button class="btn btn-small" onclick="viewTransactions('CHK-001', 'Primary Checking')">Details</button>
+          </div>
+          <div class="transaction-item debit">
+            <div class="transaction-icon">🍔</div>
+            <div class="transaction-info">
+              <strong>Chipotle Mexican Grill</strong>
+              <span class="transaction-date">Jan 9, 2025 - 12:45 PM</span>
+            </div>
+            <div class="transaction-category">Dining</div>
+            <div class="transaction-amount debit">-$18.50</div>
+            <button class="btn btn-small" onclick="disputeTransaction('TXN-003', 'Chipotle')">Dispute</button>
+          </div>
+          <div class="transaction-item debit">
+            <div class="transaction-icon">⛽</div>
+            <div class="transaction-info">
+              <strong>Shell Gas Station</strong>
+              <span class="transaction-date">Jan 8, 2025 - 8:15 AM</span>
+            </div>
+            <div class="transaction-category">Gas</div>
+            <div class="transaction-amount debit">-$52.30</div>
+            <button class="btn btn-small" onclick="disputeTransaction('TXN-004', 'Shell')">Dispute</button>
+          </div>
+          <div class="transaction-item pending">
+            <div class="transaction-icon">🏠</div>
+            <div class="transaction-info">
+              <strong>Wire Transfer - Johnson Realty</strong>
+              <span class="transaction-date">Jan 8, 2025 - 3:00 PM</span>
+            </div>
+            <div class="transaction-category">Pending</div>
+            <div class="transaction-amount debit">-$2,500.00</div>
+            <span class="pending-badge">PENDING</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Upcoming Bills Section -->
+      <section class="bills-section">
+        <h2>Upcoming Bills</h2>
+        <div class="bills-list">
+          <div class="bill-item">
+            <span class="bill-date">Jan 15</span>
+            <span class="bill-payee">Electric Company - Con Edison</span>
+            <span class="bill-amount">$145.00</span>
+            <button class="btn btn-small primary" onclick="payBillDirect('BILL-001', 'Con Edison', 145.00)">Pay Now</button>
+          </div>
+          <div class="bill-item">
+            <span class="bill-date">Jan 18</span>
+            <span class="bill-payee">Internet - Verizon Fios</span>
+            <span class="bill-amount">$89.99</span>
+            <button class="btn btn-small primary" onclick="payBillDirect('BILL-002', 'Verizon Fios', 89.99)">Pay Now</button>
+          </div>
+          <div class="bill-item">
+            <span class="bill-date">Jan 20</span>
+            <span class="bill-payee">Auto Loan Payment</span>
+            <span class="bill-amount">$485.00</span>
+            <button class="btn btn-small primary" onclick="makeLoanPayment('AUTO-001', 'Auto Loan')">Pay Now</button>
+          </div>
+          <div class="bill-item">
+            <span class="bill-date">Jan 25</span>
+            <span class="bill-payee">Credit Card Minimum</span>
+            <span class="bill-amount">$65.00</span>
+            <button class="btn btn-small primary" onclick="payBill('CC-001', 'Platinum Rewards')">Pay Now</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <!-- Transfer Money Modal -->
+  <div class="modal-overlay" id="transferModal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3>💸 Transfer Money</h3>
+        <button class="close-btn" onclick="closeModal('transferModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="transfer-type-tabs">
+          <button class="transfer-tab active" onclick="selectTransferType('internal')">Internal Transfer</button>
+          <button class="transfer-tab" onclick="selectTransferType('wire')">Wire Transfer</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>From Account</label>
+            <select id="transferFrom">
+              <option value="CHK-001">Checking ****4521 - $12,547.82</option>
+              <option value="SAV-001">Savings ****7823 - $45,230.15</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>To Account</label>
+            <select id="transferTo">
+              <option value="SAV-001">Savings ****7823</option>
+              <option value="CHK-001">Checking ****4521</option>
+              <option value="external">External Account (Wire)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" id="transferAmount" placeholder="$0.00" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Transfer Date</label>
+            <input type="date" id="transferDate">
+          </div>
+        </div>
+        <div id="wireDetails" style="display: none;">
+          <div class="form-group">
+            <label>Recipient Name</label>
+            <input type="text" id="wireRecipient" placeholder="Full legal name">
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Routing Number</label>
+              <input type="text" id="wireRouting" placeholder="9 digits">
+            </div>
+            <div class="form-group">
+              <label>Account Number</label>
+              <input type="text" id="wireAccount" placeholder="Account number">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Memo (Optional)</label>
+          <input type="text" id="transferMemo" placeholder="Add a note">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('transferModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitTransfer()">Transfer Funds</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pay Bill Modal -->
+  <div class="modal-overlay" id="payBillModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📄 Pay Bill</h3>
+        <button class="close-btn" onclick="closeModal('payBillModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-account-info" id="billPayeeInfo">Payee: --</p>
+        <div class="form-group">
+          <label>From Account</label>
+          <select id="billFromAccount">
+            <option value="CHK-001">Checking ****4521 - $12,547.82</option>
+            <option value="SAV-001">Savings ****7823 - $45,230.15</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Payment Amount</label>
+          <input type="number" id="billAmount" placeholder="$0.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Payment Date</label>
+          <input type="date" id="billDate">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('payBillModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitBillPayment()">Pay Bill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Investment Modal -->
+  <div class="modal-overlay" id="investModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📈 Buy/Sell Stock</h3>
+        <button class="close-btn" onclick="closeModal('investModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="trade-type-tabs">
+          <button class="trade-tab active" onclick="selectTradeType('buy')">Buy</button>
+          <button class="trade-tab" onclick="selectTradeType('sell')">Sell</button>
+        </div>
+        <div class="form-group">
+          <label>Symbol</label>
+          <input type="text" id="stockSymbol" placeholder="e.g., AAPL" style="text-transform: uppercase;">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Shares</label>
+            <input type="number" id="stockShares" placeholder="0" min="1">
+          </div>
+          <div class="form-group">
+            <label>Order Type</label>
+            <select id="orderType">
+              <option>Market Order</option>
+              <option>Limit Order</option>
+              <option>Stop Order</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Limit Price (if applicable)</label>
+          <input type="number" id="limitPrice" placeholder="$0.00" step="0.01">
+        </div>
+        <div class="trade-estimate">
+          <span>Estimated Total:</span>
+          <span id="tradeEstimate">$0.00</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('investModal')">Cancel</button>
+        <button class="btn btn-primary" id="tradeButton" onclick="submitTrade()">Place Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loan Application Modal -->
+  <div class="modal-overlay" id="loanModal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3>🏠 Apply for Loan</h3>
+        <button class="close-btn" onclick="closeModal('loanModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Loan Type</label>
+          <select id="loanType">
+            <option>Personal Loan</option>
+            <option>Home Mortgage</option>
+            <option>Home Equity Line (HELOC)</option>
+            <option>Auto Loan</option>
+            <option>Student Loan Refinance</option>
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Loan Amount</label>
+            <input type="number" id="loanAmount" placeholder="$0.00" step="1000">
+          </div>
+          <div class="form-group">
+            <label>Loan Term</label>
+            <select id="loanTerm">
+              <option>12 months</option>
+              <option>24 months</option>
+              <option>36 months</option>
+              <option>48 months</option>
+              <option>60 months</option>
+              <option>15 years</option>
+              <option>30 years</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Purpose</label>
+          <input type="text" id="loanPurpose" placeholder="e.g., Home renovation, debt consolidation">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Annual Income</label>
+            <input type="number" id="annualIncome" placeholder="$0.00">
+          </div>
+          <div class="form-group">
+            <label>Employment Status</label>
+            <select id="employmentStatus">
+              <option>Employed Full-Time</option>
+              <option>Employed Part-Time</option>
+              <option>Self-Employed</option>
+              <option>Retired</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('loanModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitLoanApplication()">Submit Application</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mortgage Calculator Modal -->
+  <div class="modal-overlay" id="mortgageCalcModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🧮 Mortgage Calculator</h3>
+        <button class="close-btn" onclick="closeModal('mortgageCalcModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Home Price</label>
+            <input type="number" id="homePrice" placeholder="$0.00" value="350000">
+          </div>
+          <div class="form-group">
+            <label>Down Payment</label>
+            <input type="number" id="downPayment" placeholder="$0.00" value="70000">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Interest Rate (%)</label>
+            <input type="number" id="interestRate" placeholder="6.5" value="6.5" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Loan Term</label>
+            <select id="mortgageTerm">
+              <option value="15">15 years</option>
+              <option value="30" selected>30 years</option>
+            </select>
+          </div>
+        </div>
+        <div class="mortgage-result" id="mortgageResult">
+          <div class="result-item">
+            <span class="result-label">Monthly Payment</span>
+            <span class="result-value" id="monthlyPayment">$1,772.88</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Total Interest</span>
+            <span class="result-value" id="totalInterest">$358,236.80</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Total Cost</span>
+            <span class="result-value" id="totalCost">$638,236.80</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('mortgageCalcModal')">Close</button>
+        <button class="btn btn-primary" onclick="calculateMortgage()">Calculate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Details Modal -->
+  <div class="modal-overlay" id="cardModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>💳 Card Management</h3>
+        <button class="close-btn" onclick="closeModal('cardModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-account-info" id="cardInfo">Card: --</p>
+        <div class="card-actions-grid">
+          <button class="card-action-btn" onclick="viewCardDetails()">
+            <span>📋</span>
+            <span>View Details</span>
+          </button>
+          <button class="card-action-btn" onclick="activateCard()">
+            <span>✅</span>
+            <span>Activate Card</span>
+          </button>
+          <button class="card-action-btn warning" onclick="reportLostCard()">
+            <span>🚫</span>
+            <span>Report Lost/Stolen</span>
+          </button>
+          <button class="card-action-btn" onclick="disputeTransaction()">
+            <span>⚠️</span>
+            <span>Dispute Charge</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('cardModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security Modal -->
+  <div class="modal-overlay" id="securityModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔒 Security Settings</h3>
+        <button class="close-btn" onclick="closeModal('securityModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="security-actions">
+          <button class="security-btn" onclick="changePassword()">
+            <span>🔑</span>
+            <div>
+              <strong>Change Password</strong>
+              <p>Update your account password</p>
+            </div>
+          </button>
+          <button class="security-btn" onclick="enable2FA()">
+            <span>📱</span>
+            <div>
+              <strong>Two-Factor Authentication</strong>
+              <p>Add an extra layer of security</p>
+            </div>
+          </button>
+          <button class="security-btn warning" onclick="lockAccount()">
+            <span>🔒</span>
+            <div>
+              <strong>Lock Account</strong>
+              <p>Temporarily freeze all activity</p>
+            </div>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('securityModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p id="loadingMessage">Processing...</p>
+      <div class="loading-timer">
+        <span>Elapsed: </span>
+        <span id="loadingTimer">0.0s</span>
+      </div>
+      <p class="loading-note">This delay simulates real banking system latency for RUM demo</p>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-content success">
+      <div class="modal-icon success">✓</div>
+      <h3 id="successTitle">Success!</h3>
+      <p id="successMessage">Operation completed successfully.</p>
+      <p class="modal-timing" id="successTiming"></p>
+      <button class="btn btn-primary" onclick="closeModal('successModal')">Continue</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-disclaimer">
+      <p><strong>DISCLAIMER:</strong> This website is a fictional demo application created by <strong>Vikas Srivastava</strong> for demonstration and educational purposes only. "SecureBank" is not a real financial institution. All account numbers, balances, transactions, and other financial data displayed on this website are entirely fictitious and generated for illustrative purposes. Any resemblance to actual persons, financial accounts, or banking institutions is purely coincidental. This application does not provide real banking services, financial advice, or store actual customer information. FDIC insurance does not apply.</p>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Vikas Srivastava. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

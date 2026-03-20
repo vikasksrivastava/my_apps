@@ -75,18 +75,30 @@ def find_vehicle(stock_id: str):
 
 @mcp.tool()
 def search_inventory(
-    make: str = "",
-    model: str = "",
-    body_type: str = "",
-    fuel_type: str = "",
-    drivetrain: str = "",
-    min_year: int = 0,
-    max_year: int = 9999,
-    min_price: int = 0,
-    max_price: int = 999999,
-    max_mileage: int = 999999
+    make: Optional[str] = "",
+    model: Optional[str] = "",
+    body_type: Optional[str] = "",
+    fuel_type: Optional[str] = "",
+    drivetrain: Optional[str] = "",
+    min_year: Optional[int] = None,
+    max_year: Optional[int] = None,
+    min_price: Optional[int] = None,
+    max_price: Optional[int] = None,
+    max_mileage: Optional[int] = None
 ) -> str:
     """Search the dealership inventory with optional filters like make, model, body type, price, or mileage."""
+    # Handle None values with sensible defaults
+    make = make or ""
+    model = model or ""
+    body_type = body_type or ""
+    fuel_type = fuel_type or ""
+    drivetrain = drivetrain or ""
+    min_year = min_year if min_year is not None else 0
+    max_year = max_year if max_year is not None else 9999
+    min_price = min_price if min_price is not None else 0
+    max_price = max_price if max_price is not None else 999999
+    max_mileage = max_mileage if max_mileage is not None else 999999
+
     results = []
     for car in load_inventory():
         if make and make.lower() not in car["make"].lower():
@@ -188,11 +200,16 @@ def check_vehicle_availability(stock_id: str) -> str:
 @mcp.tool()
 def estimate_monthly_payment(
     vehicle_price: float,
-    down_payment: float = 0.0,
-    apr_percent: float = 6.9,
-    term_months: int = 72
+    down_payment: Optional[float] = None,
+    apr_percent: Optional[float] = None,
+    term_months: Optional[int] = None
 ) -> str:
     """Estimate a monthly auto payment using a standard amortization formula."""
+    # Handle None values with sensible defaults
+    down_payment = down_payment if down_payment is not None else 0.0
+    apr_percent = apr_percent if apr_percent is not None else 6.9
+    term_months = term_months if term_months is not None else 72
+
     principal = max(vehicle_price - down_payment, 0)
     if term_months <= 0:
         return "Term months must be greater than 0."
@@ -221,11 +238,16 @@ def estimate_monthly_payment(
 @mcp.tool()
 def estimate_payment_for_stock(
     stock_id: str,
-    down_payment: float = 0.0,
-    apr_percent: float = 6.9,
-    term_months: int = 72
+    down_payment: Optional[float] = None,
+    apr_percent: Optional[float] = None,
+    term_months: Optional[int] = None
 ) -> str:
     """Estimate a monthly payment for a specific stock ID using its listed price."""
+    # Handle None values with sensible defaults
+    down_payment = down_payment if down_payment is not None else 0.0
+    apr_percent = apr_percent if apr_percent is not None else 6.9
+    term_months = term_months if term_months is not None else 72
+
     car = find_vehicle(stock_id)
     if not car:
         return f"Vehicle {stock_id} was not found."

@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "car-sales-tools",
+  "version": "1.0.0",
+  "description": "MCP Server providing dealership tools for car sales portal chatbot - inventory management, financing, scheduling, and customer lead capture",
+  "author": "AI Red Teaming Demo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/ai_red_teaming_car_sales_portal_chatbot"
+  },
+  "server": {
+    "command": "python",
+    "args": ["mcp_server.py"],
+    "transport": "stdio",
+    "env": {}
+  },
+  "tools": [
+    {
+      "name": "search_inventory",
+      "description": "Search the dealership inventory with optional filters like make, model, body type, price, or mileage",
+      "category": "inventory",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "make": {"type": "string", "description": "Vehicle manufacturer"},
+          "model": {"type": "string", "description": "Vehicle model name"},
+          "body_type": {"type": "string", "description": "Body type (sedan, SUV, truck, etc.)"},
+          "fuel_type": {"type": "string", "description": "Fuel type (gasoline, electric, hybrid)"},
+          "drivetrain": {"type": "string", "description": "Drivetrain (FWD, RWD, AWD)"},
+          "min_year": {"type": "integer", "description": "Minimum model year"},
+          "max_year": {"type": "integer", "description": "Maximum model year"},
+          "min_price": {"type": "integer", "description": "Minimum price"},
+          "max_price": {"type": "integer", "description": "Maximum price"},
+          "max_mileage": {"type": "integer", "description": "Maximum mileage"}
+        }
+      }
+    },
+    {
+      "name": "get_vehicle_details",
+      "description": "Get detailed information for a vehicle by stock ID",
+      "category": "inventory",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stock_id": {"type": "string", "description": "Vehicle stock ID"}
+        },
+        "required": ["stock_id"]
+      }
+    },
+    {
+      "name": "compare_vehicles",
+      "description": "Compare multiple vehicles by providing stock IDs separated by commas",
+      "category": "inventory",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stock_ids_csv": {"type": "string", "description": "Comma-separated stock IDs"}
+        },
+        "required": ["stock_ids_csv"]
+      }
+    },
+    {
+      "name": "check_vehicle_availability",
+      "description": "Check whether a given vehicle is available, sold, or sale pending",
+      "category": "inventory",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stock_id": {"type": "string", "description": "Vehicle stock ID"}
+        },
+        "required": ["stock_id"]
+      }
+    },
+    {
+      "name": "estimate_monthly_payment",
+      "description": "Estimate a monthly auto payment using a standard amortization formula",
+      "category": "financing",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "vehicle_price": {"type": "number", "description": "Vehicle price"},
+          "down_payment": {"type": "number", "description": "Down payment amount"},
+          "apr_percent": {"type": "number", "description": "Annual percentage rate"},
+          "term_months": {"type": "integer", "description": "Loan term in months"}
+        },
+        "required": ["vehicle_price"]
+      }
+    },
+    {
+      "name": "estimate_payment_for_stock",
+      "description": "Estimate a monthly payment for a specific stock ID using its listed price",
+      "category": "financing",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stock_id": {"type": "string", "description": "Vehicle stock ID"},
+          "down_payment": {"type": "number", "description": "Down payment amount"},
+          "apr_percent": {"type": "number", "description": "Annual percentage rate"},
+          "term_months": {"type": "integer", "description": "Loan term in months"}
+        },
+        "required": ["stock_id"]
+      }
+    },
+    {
+      "name": "estimate_trade_in",
+      "description": "Estimate a trade-in range using vehicle details and condition",
+      "category": "financing",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "make": {"type": "string", "description": "Vehicle make"},
+          "model": {"type": "string", "description": "Vehicle model"},
+          "year": {"type": "integer", "description": "Model year"},
+          "mileage": {"type": "integer", "description": "Current mileage"},
+          "condition": {"type": "string", "description": "Condition: excellent, good, fair, poor"}
+        },
+        "required": ["make", "model", "year", "mileage"]
+      }
+    },
+    {
+      "name": "get_finance_programs",
+      "description": "Return example financing programs and general financing guidance",
+      "category": "financing",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "dealership_hours",
+      "description": "Get hours for the showroom or service department",
+      "category": "general",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "department": {"type": "string", "description": "Department: showroom or service"}
+        }
+      }
+    },
+    {
+      "name": "schedule_test_drive",
+      "description": "Schedule a demo test-drive request and store it locally",
+      "category": "scheduling",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string", "description": "Customer name"},
+          "email": {"type": "string", "description": "Customer email"},
+          "stock_id": {"type": "string", "description": "Vehicle stock ID"},
+          "preferred_date": {"type": "string", "description": "Preferred date"},
+          "preferred_time": {"type": "string", "description": "Preferred time slot"}
+        },
+        "required": ["name", "email", "stock_id", "preferred_date"]
+      }
+    },
+    {
+      "name": "save_customer_lead",
+      "description": "Save a demo sales lead locally",
+      "category": "crm",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string", "description": "Customer name"},
+          "email": {"type": "string", "description": "Customer email"},
+          "phone": {"type": "string", "description": "Phone number"},
+          "intent": {"type": "string", "description": "Customer intent"},
+          "notes": {"type": "string", "description": "Additional notes"}
+        },
+        "required": ["name", "email"]
+      }
+    },
+    {
+      "name": "get_warranty_summary",
+      "description": "Return a high-level warranty summary for a vehicle",
+      "category": "inventory",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stock_id": {"type": "string", "description": "Vehicle stock ID"}
+        },
+        "required": ["stock_id"]
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "name": "car_sales_assistant",
+      "description": "System prompt for the car sales portal chatbot",
+      "content": "You are a helpful assistant for a car sales portal. Use retrieved knowledge for dealership policies and general FAQs. Use tools for inventory, pricing, payments, trade-ins, hours, and appointments. Do not invent exact inventory facts. If a tool is available for a question, prefer using it."
+    }
+  ],
+  "resources": [
+    {
+      "name": "vehicle_inventory",
+      "description": "JSON database of available vehicles",
+      "uri": "file://data/inventory.json",
+      "mimeType": "application/json"
+    },
+    {
+      "name": "faq_knowledge_base",
+      "description": "FAQ text file for RAG retrieval",
+      "uri": "file://data/faq.txt",
+      "mimeType": "text/plain"
+    }
+  ],
+  "resourceTemplates": [
+    {
+      "name": "vehicle_by_id",
+      "description": "Get vehicle details by stock ID",
+      "uriTemplate": "vehicle://{stock_id}",
+      "mimeType": "application/json"
+    }
+  ],
+  "security": {
+    "dataAccess": ["local_files"],
+    "networkAccess": false,
+    "sensitiveDataHandling": ["customer_pii", "financial_data"],
+    "auditLogging": true
+  }
+}

@@ -1,0 +1,158 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "car-sales-portal-chatbot"
+version = "1.0.0"
+description = "AI-powered car sales portal chatbot with RAG and MCP tools"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "AI Red Teaming Demo"}
+]
+keywords = [
+    "ai",
+    "chatbot",
+    "llm",
+    "rag",
+    "mcp",
+    "ollama",
+    "fastapi",
+    "car-sales",
+    "agentic-workflow"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "jinja2>=3.0.0",
+    "httpx>=0.24.0",
+    "chromadb>=0.4.0",
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "agentic-radar>=0.1.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/your-org/ai_red_teaming_car_sales_portal_chatbot"
+"Bug Tracker" = "https://github.com/your-org/ai_red_teaming_car_sales_portal_chatbot/issues"
+"Documentation" = "https://github.com/your-org/ai_red_teaming_car_sales_portal_chatbot#readme"
+
+[project.scripts]
+car-sales-chatbot = "app:main"
+
+# =============================================================================
+# AI Asset Metadata for Splx AI Asset Management
+# =============================================================================
+
+[tool.ai-assets]
+# Project classification
+type = "agentic-workflow"
+framework = "fastmcp"
+risk_level = "medium"
+
+# Models used in this project
+[[tool.ai-assets.models]]
+name = "qwen2.5:3b"
+provider = "Ollama"
+type = "chat"
+kind = "open-source"
+context_window = 32768
+parameters = "3B"
+multimodal = false
+reasoning = false
+usage = "Primary chat model for customer interactions"
+
+[[tool.ai-assets.models]]
+name = "nomic-embed-text"
+provider = "Ollama"
+type = "embedding"
+kind = "open-source"
+dimensions = 768
+usage = "Document embedding for RAG retrieval"
+
+# Agents in the workflow
+[[tool.ai-assets.agents]]
+name = "CarSalesAssistant"
+description = "Main conversational agent for car sales portal"
+model = "qwen2.5:3b"
+system_prompt = "You are a helpful assistant for a car sales portal. Use retrieved knowledge for dealership policies and general FAQs. Use tools for inventory, pricing, payments, trade-ins, hours, and appointments. Do not invent exact inventory facts. If a tool is available for a question, prefer using it."
+tools = [
+    "search_inventory",
+    "get_vehicle_details",
+    "compare_vehicles",
+    "check_vehicle_availability",
+    "estimate_monthly_payment",
+    "estimate_payment_for_stock",
+    "estimate_trade_in",
+    "get_finance_programs",
+    "dealership_hours",
+    "schedule_test_drive",
+    "save_customer_lead",
+    "get_warranty_summary"
+]
+
+# MCP Server configuration
+[tool.ai-assets.mcp-server]
+name = "car-sales-tools"
+transport = "stdio"
+command = "python mcp_server.py"
+tools_count = 12
+config_file = "mcp.json"
+
+# RAG configuration
+[tool.ai-assets.rag]
+enabled = true
+vector_store = "chromadb"
+embedding_model = "nomic-embed-text"
+chunk_size = 600
+chunk_overlap = 120
+collection_name = "car_sales_docs"
+sources = ["data/faq.txt"]
+
+# Data handling
+[tool.ai-assets.data]
+sensitive_data = ["customer_pii", "financial_data"]
+storage = ["data/leads.json", "data/appointments.json"]
+inventory = "data/inventory.json"
+
+# Security considerations
+[tool.ai-assets.security]
+input_validation = true
+output_sanitization = true
+rate_limiting = false
+authentication = false
+audit_logging = true
+known_vulnerabilities = [
+    "prompt_injection",
+    "data_exfiltration",
+    "unauthorized_tool_access"
+]
+
+# =============================================================================
+# Agentic Radar Configuration
+# =============================================================================
+
+[tool.agentic-radar]
+enabled = true
+entry_point = "app.py"
+mcp_server = "mcp_server.py"
+framework = "custom"
+scan_targets = ["app.py", "mcp_server.py", "ingest.py"]

@@ -1,0 +1,227 @@
+# Splx AI Asset Management Configuration
+# This file helps Splx discover and catalog AI assets in this repository
+
+version: "1.0"
+
+project:
+  name: "Car Sales Portal Chatbot"
+  description: "AI-powered chatbot for car dealership with RAG and MCP tools"
+  type: "agentic-workflow"
+  risk_level: "medium"
+  environment: "development"
+
+# Scan configuration
+scan:
+  enabled: true
+  include_paths:
+    - "*.py"
+    - "mcp.json"
+    - "data/*.json"
+    - "data/*.txt"
+  exclude_paths:
+    - "venv/**"
+    - "__pycache__/**"
+    - ".git/**"
+    - "chroma_db/**"
+
+# Model definitions for detection
+models:
+  - id: "qwen2.5-3b"
+    name: "qwen2.5:3b"
+    provider: "Ollama"
+    type: "chat"
+    kind: "open-source"
+    license: "Apache-2.0"
+    context_window: 32768
+    parameters: "3B"
+    multimodal: false
+    reasoning: false
+    file_references:
+      - "app.py:18"
+    usage_description: "Primary LLM for conversational responses and tool orchestration"
+
+  - id: "nomic-embed-text"
+    name: "nomic-embed-text"
+    provider: "Ollama"
+    type: "embedding"
+    kind: "open-source"
+    license: "Apache-2.0"
+    dimensions: 768
+    file_references:
+      - "app.py:19"
+      - "ingest.py:8"
+    usage_description: "Embedding model for RAG document retrieval"
+
+# Workflow definition
+workflows:
+  - id: "car-sales-chatbot-workflow"
+    name: "Car Sales Chatbot Workflow"
+    entry_point: "app.py"
+    framework: "FastAPI + MCP"
+    description: "Agentic workflow combining RAG retrieval with MCP tool execution"
+
+    agents:
+      - id: "sales-assistant"
+        name: "CarSalesAssistant"
+        model: "qwen2.5:3b"
+        system_prompt_file: null
+        system_prompt: |
+          You are a helpful assistant for a car sales portal.
+          Use retrieved knowledge for dealership policies and general FAQs.
+          Use tools for inventory, pricing, payments, trade-ins, hours, and appointments.
+          Do not invent exact inventory facts.
+          If a tool is available for a question, prefer using it.
+        tools:
+          - "search_inventory"
+          - "get_vehicle_details"
+          - "compare_vehicles"
+          - "check_vehicle_availability"
+          - "estimate_monthly_payment"
+          - "estimate_payment_for_stock"
+          - "estimate_trade_in"
+          - "get_finance_programs"
+          - "dealership_hours"
+          - "schedule_test_drive"
+          - "save_customer_lead"
+          - "get_warranty_summary"
+
+    components:
+      - type: "rag"
+        name: "FAQ Retrieval"
+        vector_store: "ChromaDB"
+        embedding_model: "nomic-embed-text"
+        sources:
+          - "data/faq.txt"
+
+      - type: "mcp-client"
+        name: "MCP Tool Client"
+        server: "mcp_server.py"
+        transport: "stdio"
+
+# MCP Server definition
+mcp_servers:
+  - id: "car-sales-tools"
+    name: "car-sales-tools"
+    file: "mcp_server.py"
+    config_file: "mcp.json"
+    transport: "stdio"
+    command: "python mcp_server.py"
+
+    tools:
+      - name: "search_inventory"
+        category: "inventory"
+        description: "Search dealership inventory with filters"
+        risk: "low"
+
+      - name: "get_vehicle_details"
+        category: "inventory"
+        description: "Get detailed vehicle information"
+        risk: "low"
+
+      - name: "compare_vehicles"
+        category: "inventory"
+        description: "Compare multiple vehicles"
+        risk: "low"
+
+      - name: "check_vehicle_availability"
+        category: "inventory"
+        description: "Check vehicle availability status"
+        risk: "low"
+
+      - name: "estimate_monthly_payment"
+        category: "financing"
+        description: "Calculate monthly payments"
+        risk: "low"
+
+      - name: "estimate_payment_for_stock"
+        category: "financing"
+        description: "Payment estimation for specific vehicle"
+        risk: "low"
+
+      - name: "estimate_trade_in"
+        category: "financing"
+        description: "Estimate trade-in value"
+        risk: "low"
+
+      - name: "get_finance_programs"
+        category: "financing"
+        description: "Get financing program information"
+        risk: "low"
+
+      - name: "dealership_hours"
+        category: "general"
+        description: "Get business hours"
+        risk: "low"
+
+      - name: "schedule_test_drive"
+        category: "scheduling"
+        description: "Schedule test drive appointment"
+        risk: "medium"
+        sensitive_data: ["customer_pii"]
+
+      - name: "save_customer_lead"
+        category: "crm"
+        description: "Save customer lead information"
+        risk: "medium"
+        sensitive_data: ["customer_pii"]
+
+      - name: "get_warranty_summary"
+        category: "inventory"
+        description: "Get warranty information"
+        risk: "low"
+
+    resources:
+      - name: "vehicle_inventory"
+        uri: "file://data/inventory.json"
+        description: "Vehicle inventory database"
+
+      - name: "faq_knowledge_base"
+        uri: "file://data/faq.txt"
+        description: "FAQ knowledge base"
+
+    prompts:
+      - name: "car_sales_assistant"
+        description: "Main assistant system prompt"
+
+# Security assessment
+security:
+  authentication_required: false
+  rate_limiting: false
+  input_validation: true
+  output_sanitization: true
+  audit_logging: true
+
+  sensitive_data_types:
+    - "customer_pii"
+    - "financial_data"
+
+  data_storage:
+    - path: "data/leads.json"
+      contains: ["customer_pii"]
+      encryption: false
+
+    - path: "data/appointments.json"
+      contains: ["customer_pii"]
+      encryption: false
+
+  potential_vulnerabilities:
+    - type: "prompt_injection"
+      severity: "medium"
+      description: "User input passed directly to LLM"
+      mitigation: "System prompt instructs model to use tools"
+
+    - type: "data_exfiltration"
+      severity: "low"
+      description: "Customer data stored in local JSON files"
+      mitigation: "Local-only storage, no external API calls"
+
+    - type: "unauthorized_tool_access"
+      severity: "low"
+      description: "All tools accessible without authentication"
+      mitigation: "Demo application - add auth for production"
+
+# Issue tracking thresholds
+issues:
+  model_benchmark_threshold: 50
+  unreviewed_model_severity: "medium"
+  unwanted_model_severity: "critical"

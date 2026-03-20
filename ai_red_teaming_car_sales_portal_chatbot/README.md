@@ -12,6 +12,8 @@ A local-first AI chatbot demo for a car dealership portal. This application comb
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
 - [Demo Prompts](#demo-prompts)
+- [Splx AI Asset Management](#splx-ai-asset-management)
+- [Security Scanning](#security-scanning)
 - [Troubleshooting](#troubleshooting)
 
 ## Features
@@ -213,7 +215,20 @@ ai_red_teaming_car_sales_portal_chatbot/
 ├── mcp_server.py          # MCP tool server with 12 dealership tools
 ├── ingest.py              # RAG document ingestion script
 ├── requirements.txt       # Python dependencies
+├── pyproject.toml         # Project metadata with AI asset annotations
 ├── README.md              # This file
+│
+├── # AI Asset Configuration (for Splx)
+├── ai-assets.yaml         # Centralized AI asset manifest
+├── mcp.json               # MCP server configuration
+├── .splx/
+│   └── config.yaml        # Splx scan configuration
+│
+├── # CI/CD
+├── .github/
+│   └── workflows/
+│       └── agentic-radar-scan.yaml  # Security scanning workflow
+│
 ├── templates/
 │   └── index.html         # Chat UI template
 ├── data/
@@ -276,6 +291,104 @@ Try these prompts to explore the chatbot's capabilities:
 - "What are your showroom hours?"
 - "When is the service department open?"
 - "What's your return policy?"
+
+## Splx AI Asset Management
+
+This project is configured for automatic detection by [Splx AI Asset Management](https://splx.ai/). When you connect this GitHub repository to Splx, it will automatically discover and catalog all AI assets.
+
+### What Gets Detected
+
+| Asset Type | Assets Detected |
+|------------|-----------------|
+| **Models** | `qwen2.5:3b` (chat), `nomic-embed-text` (embedding) |
+| **AI Workflows** | Car Sales Chatbot Workflow (RAG + Agent) |
+| **MCP Servers** | `car-sales-tools` (12 tools) |
+| **Issues** | Security vulnerabilities, PII handling |
+
+### Configuration Files
+
+The following files enable Splx detection:
+
+| File | Purpose |
+|------|---------|
+| `ai-assets.yaml` | Centralized AI asset manifest |
+| `mcp.json` | MCP server configuration |
+| `pyproject.toml` | Project metadata with AI asset annotations |
+| `.splx/config.yaml` | Splx-specific scan configuration |
+
+### Connecting to Splx
+
+1. **Install Splx GitHub App** on your organization
+2. Navigate to **Splx AI Asset Management** → **Environments**
+3. Click **Connect Environment** → **GitHub**
+4. Enter the GitHub App Installation ID
+5. Run scans for **Models**, **AI Workflows**, and **MCP Servers**
+
+### Detected Components
+
+#### Models
+```yaml
+- qwen2.5:3b        # Chat model (Ollama, 3B params, Apache-2.0)
+- nomic-embed-text  # Embedding model (Ollama, 768 dims, Apache-2.0)
+```
+
+#### AI Workflow
+```
+User Input → RAG Retrieval → LLM Processing → Tool Execution → Response
+                  ↓                ↓                ↓
+            ChromaDB        qwen2.5:3b      MCP Server (12 tools)
+```
+
+#### MCP Server Tools (by category)
+- **Inventory**: search, details, compare, availability, warranty
+- **Financing**: payment calculator, trade-in estimator, programs
+- **Scheduling**: test drive booking
+- **CRM**: lead capture
+- **General**: business hours
+
+### Security Issues Detected
+
+Splx will identify the following potential issues:
+
+| Issue | Severity | Description |
+|-------|----------|-------------|
+| Prompt Injection | Medium | User input passed directly to LLM |
+| PII Handling | Medium | Customer data in `schedule_test_drive`, `save_customer_lead` |
+| No Authentication | Low | API endpoints lack authentication |
+
+## Security Scanning
+
+### Agentic Radar Integration
+
+This project includes [Agentic Radar](https://github.com/splx-ai/agentic-radar) scanning via GitHub Actions.
+
+#### Manual Scan
+
+```bash
+# Install Agentic Radar
+pip install agentic-radar
+
+# Scan the application
+agentic-radar scan custom app.py --output-dir ./reports
+```
+
+#### Automated CI/CD Scanning
+
+The `.github/workflows/agentic-radar-scan.yaml` workflow automatically:
+- Runs on every push to `main`
+- Scans all AI workflow components
+- Uploads security reports as artifacts
+- Comments findings on pull requests
+
+### Security Considerations
+
+| Component | Risk Level | Mitigation |
+|-----------|------------|------------|
+| `search_inventory` | Low | Read-only, no PII |
+| `get_vehicle_details` | Low | Read-only, no PII |
+| `schedule_test_drive` | Medium | Stores PII locally |
+| `save_customer_lead` | Medium | Stores PII locally |
+| System Prompt | Medium | Tool-preference guardrail |
 
 ## Troubleshooting
 

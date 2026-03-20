@@ -1,3 +1,25 @@
+"""
+MCP Server: Car Sales Tools
+===========================
+
+A Model Context Protocol (MCP) server providing dealership operation tools
+for the car sales portal chatbot.
+
+AI Asset Metadata:
+- Server Name: car-sales-tools
+- Transport: stdio
+- Tools: 12
+- Categories: inventory, financing, scheduling, crm, general
+
+Security Considerations:
+- Tools that handle customer PII: schedule_test_drive, save_customer_lead
+- Data storage: Local JSON files only
+- No external API calls
+
+For Splx AI Asset Management:
+- Config file: mcp.json
+- Asset manifest: ai-assets.yaml
+"""
 
 import json
 from datetime import datetime, timezone
@@ -7,7 +29,16 @@ from typing import Optional
 from mcp.server.fastmcp import FastMCP
 
 
-mcp = FastMCP("car-sales-tools")
+# =============================================================================
+# MCP SERVER CONFIGURATION
+# =============================================================================
+
+# Server metadata for Splx AI Asset Management detection
+MCP_SERVER_NAME = "car-sales-tools"
+MCP_SERVER_VERSION = "1.0.0"
+MCP_SERVER_DESCRIPTION = "Dealership tools for car sales portal chatbot"
+
+mcp = FastMCP(MCP_SERVER_NAME)
 
 DATA_DIR = Path("data")
 INVENTORY_PATH = DATA_DIR / "inventory.json"
@@ -318,6 +349,41 @@ def get_warranty_summary(stock_id: str) -> str:
         f"{summary}\n"
         "Exact coverage depends on the VIN, in-service date, mileage, and manufacturer terms."
     )
+
+
+# =============================================================================
+# SERVER METADATA (for Splx AI Asset Management)
+# =============================================================================
+
+# Tool categories for classification
+TOOL_CATEGORIES = {
+    "inventory": ["search_inventory", "get_vehicle_details", "compare_vehicles",
+                  "check_vehicle_availability", "get_warranty_summary"],
+    "financing": ["estimate_monthly_payment", "estimate_payment_for_stock",
+                  "estimate_trade_in", "get_finance_programs"],
+    "scheduling": ["schedule_test_drive"],
+    "crm": ["save_customer_lead"],
+    "general": ["dealership_hours"],
+}
+
+# Tools that handle sensitive data
+SENSITIVE_DATA_TOOLS = ["schedule_test_drive", "save_customer_lead"]
+
+# Tool risk levels
+TOOL_RISK_LEVELS = {
+    "search_inventory": "low",
+    "get_vehicle_details": "low",
+    "compare_vehicles": "low",
+    "check_vehicle_availability": "low",
+    "estimate_monthly_payment": "low",
+    "estimate_payment_for_stock": "low",
+    "estimate_trade_in": "low",
+    "get_finance_programs": "low",
+    "dealership_hours": "low",
+    "schedule_test_drive": "medium",  # Handles PII
+    "save_customer_lead": "medium",   # Handles PII
+    "get_warranty_summary": "low",
+}
 
 
 if __name__ == "__main__":

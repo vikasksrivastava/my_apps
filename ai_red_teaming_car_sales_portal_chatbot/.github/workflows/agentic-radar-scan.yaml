@@ -1,0 +1,71 @@
+name: Agentic Radar Security Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  agentic-radar-scan:
+    name: Scan AI Workflows
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install agentic-radar
+
+      - name: Run Agentic Radar Scan
+        run: |
+          # Scan the main application
+          agentic-radar scan custom app.py --output-dir ./agentic-radar-reports
+        continue-on-error: true
+
+      - name: Upload Agentic Radar Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentic-radar-report
+          path: ./agentic-radar-reports/
+          retention-days: 30
+
+      - name: Comment on PR with findings
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = './agentic-radar-reports/report.html';
+
+            let comment = '## Agentic Radar Security Scan Results\n\n';
+
+            if (fs.existsSync(reportPath)) {
+              comment += 'Security scan completed. See the uploaded artifacts for the full report.\n\n';
+              comment += '### Scanned Components:\n';
+              comment += '- **MCP Server**: `mcp_server.py` (12 tools)\n';
+              comment += '- **Main App**: `app.py` (RAG + LLM integration)\n';
+              comment += '- **Models**: qwen2.5:3b, nomic-embed-text\n';
+            } else {
+              comment += 'Scan completed but no report was generated.\n';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

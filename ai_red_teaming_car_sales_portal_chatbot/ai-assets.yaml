@@ -1,0 +1,428 @@
+# AI Assets Manifest
+# This file provides a centralized inventory of all AI components in this project
+# Compatible with Splx AI Asset Management and Agentic Radar
+
+version: "1.0"
+schema: "https://splx.ai/schemas/ai-assets/v1"
+
+metadata:
+  project_name: "Car Sales Portal Chatbot"
+  description: "AI-powered chatbot for car dealership operations using RAG and MCP tools"
+  repository: "https://github.com/your-org/ai_red_teaming_car_sales_portal_chatbot"
+  maintainers:
+    - name: "AI Red Teaming Team"
+  tags:
+    - "chatbot"
+    - "llm"
+    - "rag"
+    - "mcp"
+    - "agentic-workflow"
+    - "ollama"
+
+# =============================================================================
+# AI MODELS
+# =============================================================================
+models:
+  - id: "chat-model"
+    name: "qwen2.5:3b"
+    provider: "Ollama"
+    provider_type: "local"
+    model_type: "chat"
+    kind: "open-source"
+    license: "Apache-2.0"
+    parameters: "3B"
+    context_window: 32768
+    multimodal: false
+    reasoning: false
+    fine_tuned: false
+    quantization: "Q4_K_M"
+    deployment:
+      type: "local"
+      endpoint: "http://localhost:11434"
+      api_path: "/api/chat"
+    usage:
+      - file: "app.py"
+        line: 18
+        purpose: "Primary chat model for customer interactions"
+    capabilities:
+      - "text_generation"
+      - "tool_calling"
+      - "multi_turn_conversation"
+
+  - id: "embedding-model"
+    name: "nomic-embed-text"
+    provider: "Ollama"
+    provider_type: "local"
+    model_type: "embedding"
+    kind: "open-source"
+    license: "Apache-2.0"
+    dimensions: 768
+    max_tokens: 8192
+    deployment:
+      type: "local"
+      endpoint: "http://localhost:11434"
+      api_path: "/api/embed"
+    usage:
+      - file: "app.py"
+        line: 19
+        purpose: "Query embedding for RAG retrieval"
+      - file: "ingest.py"
+        line: 8
+        purpose: "Document embedding for vector storage"
+    capabilities:
+      - "text_embedding"
+      - "semantic_search"
+
+# =============================================================================
+# AI WORKFLOWS
+# =============================================================================
+workflows:
+  - id: "car-sales-workflow"
+    name: "Car Sales Chatbot Workflow"
+    description: "End-to-end conversational workflow for car sales assistance"
+    framework: "custom"
+    entry_point: "app.py"
+    type: "agentic"
+
+    architecture:
+      pattern: "rag-augmented-agent"
+      components:
+        - "web_interface"
+        - "rag_retrieval"
+        - "llm_reasoning"
+        - "mcp_tool_execution"
+
+    flow:
+      - step: 1
+        name: "User Input"
+        component: "web_interface"
+        description: "Receive user message via chat UI"
+
+      - step: 2
+        name: "RAG Retrieval"
+        component: "rag_retrieval"
+        description: "Embed query and retrieve relevant FAQ context"
+        model: "nomic-embed-text"
+        vector_store: "chromadb"
+
+      - step: 3
+        name: "LLM Processing"
+        component: "llm_reasoning"
+        description: "Process augmented query with available tools"
+        model: "qwen2.5:3b"
+
+      - step: 4
+        name: "Tool Execution"
+        component: "mcp_tool_execution"
+        description: "Execute MCP tools if requested by LLM"
+        server: "car-sales-tools"
+
+      - step: 5
+        name: "Agentic Loop"
+        component: "llm_reasoning"
+        description: "Continue processing until final response"
+        loop: true
+
+      - step: 6
+        name: "Response"
+        component: "web_interface"
+        description: "Return assistant response to user"
+
+    agents:
+      - id: "sales-assistant"
+        name: "CarSalesAssistant"
+        role: "primary"
+        model: "qwen2.5:3b"
+        system_prompt: |
+          You are a helpful assistant for a car sales portal.
+          Use retrieved knowledge for dealership policies and general FAQs.
+          Use tools for inventory, pricing, payments, trade-ins, hours, and appointments.
+          Do not invent exact inventory facts.
+          If a tool is available for a question, prefer using it.
+        tools:
+          - "search_inventory"
+          - "get_vehicle_details"
+          - "compare_vehicles"
+          - "check_vehicle_availability"
+          - "estimate_monthly_payment"
+          - "estimate_payment_for_stock"
+          - "estimate_trade_in"
+          - "get_finance_programs"
+          - "dealership_hours"
+          - "schedule_test_drive"
+          - "save_customer_lead"
+          - "get_warranty_summary"
+        guardrails:
+          - "no_inventory_hallucination"
+          - "tool_preference"
+
+# =============================================================================
+# MCP SERVERS
+# =============================================================================
+mcp_servers:
+  - id: "car-sales-tools"
+    name: "car-sales-tools"
+    description: "MCP server providing dealership operation tools"
+    version: "1.0.0"
+    file: "mcp_server.py"
+    config: "mcp.json"
+    transport: "stdio"
+    command: "python mcp_server.py"
+
+    tools:
+      - name: "search_inventory"
+        category: "inventory"
+        description: "Search dealership inventory with filters"
+        parameters: ["make", "model", "body_type", "fuel_type", "drivetrain", "min_year", "max_year", "min_price", "max_price", "max_mileage"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "get_vehicle_details"
+        category: "inventory"
+        description: "Get detailed vehicle information by stock ID"
+        parameters: ["stock_id"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "compare_vehicles"
+        category: "inventory"
+        description: "Compare multiple vehicles side-by-side"
+        parameters: ["stock_ids_csv"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "check_vehicle_availability"
+        category: "inventory"
+        description: "Check if vehicle is available, sold, or pending"
+        parameters: ["stock_id"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "estimate_monthly_payment"
+        category: "financing"
+        description: "Calculate monthly payment with amortization"
+        parameters: ["vehicle_price", "down_payment", "apr_percent", "term_months"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "estimate_payment_for_stock"
+        category: "financing"
+        description: "Calculate payment for specific vehicle"
+        parameters: ["stock_id", "down_payment", "apr_percent", "term_months"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "estimate_trade_in"
+        category: "financing"
+        description: "Estimate trade-in value based on vehicle details"
+        parameters: ["make", "model", "year", "mileage", "condition"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "get_finance_programs"
+        category: "financing"
+        description: "Get available financing programs"
+        parameters: []
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "dealership_hours"
+        category: "general"
+        description: "Get showroom or service department hours"
+        parameters: ["department"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+      - name: "schedule_test_drive"
+        category: "scheduling"
+        description: "Schedule a test drive appointment"
+        parameters: ["name", "email", "stock_id", "preferred_date", "preferred_time"]
+        returns: "string"
+        side_effects: true
+        writes_to: "data/appointments.json"
+        sensitive_data: ["customer_pii"]
+        risk_level: "medium"
+
+      - name: "save_customer_lead"
+        category: "crm"
+        description: "Save customer lead information"
+        parameters: ["name", "email", "phone", "intent", "notes"]
+        returns: "string"
+        side_effects: true
+        writes_to: "data/leads.json"
+        sensitive_data: ["customer_pii"]
+        risk_level: "medium"
+
+      - name: "get_warranty_summary"
+        category: "inventory"
+        description: "Get warranty summary for a vehicle"
+        parameters: ["stock_id"]
+        returns: "string"
+        side_effects: false
+        risk_level: "low"
+
+    resources:
+      - name: "vehicle_inventory"
+        uri: "file://data/inventory.json"
+        mime_type: "application/json"
+        description: "Vehicle inventory database"
+
+      - name: "faq_knowledge_base"
+        uri: "file://data/faq.txt"
+        mime_type: "text/plain"
+        description: "FAQ content for RAG"
+
+    prompts:
+      - name: "car_sales_assistant"
+        description: "System prompt for car sales assistant"
+
+# =============================================================================
+# RAG CONFIGURATION
+# =============================================================================
+rag:
+  - id: "faq-rag"
+    name: "FAQ Knowledge Base"
+    description: "RAG system for dealership FAQ retrieval"
+    vector_store:
+      type: "chromadb"
+      path: "./chroma_db"
+      collection: "car_sales_docs"
+    embedding:
+      model: "nomic-embed-text"
+      dimensions: 768
+    chunking:
+      strategy: "fixed_size"
+      chunk_size: 600
+      overlap: 120
+    retrieval:
+      top_k: 4
+      similarity_metric: "cosine"
+    sources:
+      - path: "data/faq.txt"
+        type: "text"
+        description: "Dealership FAQ document"
+
+# =============================================================================
+# DATA ASSETS
+# =============================================================================
+data:
+  - id: "vehicle-inventory"
+    name: "Vehicle Inventory"
+    path: "data/inventory.json"
+    type: "json"
+    description: "Database of available vehicles"
+    schema:
+      fields: ["stock_id", "year", "make", "model", "body_type", "price", "mileage", "fuel_type", "transmission", "drivetrain", "color", "status", "features"]
+    records: 8
+    sensitive: false
+
+  - id: "customer-leads"
+    name: "Customer Leads"
+    path: "data/leads.json"
+    type: "json"
+    description: "Captured customer lead information"
+    schema:
+      fields: ["name", "email", "phone", "intent", "notes", "created_at"]
+    sensitive: true
+    pii_fields: ["name", "email", "phone"]
+    generated: true
+
+  - id: "appointments"
+    name: "Test Drive Appointments"
+    path: "data/appointments.json"
+    type: "json"
+    description: "Scheduled test drive appointments"
+    schema:
+      fields: ["type", "name", "email", "stock_id", "preferred_date", "preferred_time", "created_at"]
+    sensitive: true
+    pii_fields: ["name", "email"]
+    generated: true
+
+  - id: "faq-content"
+    name: "FAQ Knowledge Base"
+    path: "data/faq.txt"
+    type: "text"
+    description: "Dealership FAQ for RAG retrieval"
+    sensitive: false
+
+# =============================================================================
+# SECURITY & COMPLIANCE
+# =============================================================================
+security:
+  authentication: false
+  authorization: false
+  encryption_at_rest: false
+  encryption_in_transit: false
+  rate_limiting: false
+  input_validation: true
+  output_sanitization: true
+  audit_logging: true
+
+  sensitive_data_handling:
+    types: ["customer_pii", "financial_calculations"]
+    storage_locations:
+      - "data/leads.json"
+      - "data/appointments.json"
+    retention_policy: "none_defined"
+
+  vulnerabilities:
+    - id: "vuln-001"
+      type: "prompt_injection"
+      severity: "medium"
+      component: "sales-assistant"
+      description: "User input passed to LLM may contain injection attempts"
+      status: "acknowledged"
+      mitigation: "System prompt instructs appropriate tool usage"
+
+    - id: "vuln-002"
+      type: "pii_exposure"
+      severity: "medium"
+      component: "save_customer_lead"
+      description: "Customer PII stored without encryption"
+      status: "acknowledged"
+      mitigation: "Local storage only, no external transmission"
+
+    - id: "vuln-003"
+      type: "no_authentication"
+      severity: "low"
+      component: "web_interface"
+      description: "No user authentication implemented"
+      status: "acknowledged"
+      mitigation: "Demo application - add auth for production"
+
+compliance:
+  frameworks: []
+  certifications: []
+  notes: "Demo application - not intended for production use with real customer data"
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+deployment:
+  type: "local"
+  requirements:
+    python: ">=3.10"
+    ollama: "required"
+    models:
+      - "qwen2.5:3b"
+      - "nomic-embed-text"
+  endpoints:
+    - name: "Web UI"
+      url: "http://localhost:8000"
+      type: "http"
+    - name: "Health Check"
+      url: "http://localhost:8000/health"
+      type: "http"
+    - name: "Chat API"
+      url: "http://localhost:8000/chat"
+      type: "http"
+      method: "POST"

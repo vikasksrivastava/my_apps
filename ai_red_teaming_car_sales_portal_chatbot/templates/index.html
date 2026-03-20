@@ -5,26 +5,139 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Car Sales Portal Chatbot</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
-      max-width: 980px;
-      margin: 32px auto;
-      padding: 0 16px;
+      margin: 0;
+      padding: 0;
       background: #f8fafc;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 16px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
     }
     h1 {
-      margin-bottom: 6px;
+      margin: 0 0 4px 0;
+      font-size: 1.5rem;
     }
     .sub {
       color: #475569;
-      margin-bottom: 18px;
+      margin: 0;
+      font-size: 0.9rem;
     }
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 24px;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 340px;
+      background: #1e293b;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #334155;
+    }
+    .sidebar-header {
+      padding: 12px 16px;
+      background: #0f172a;
+      border-bottom: 1px solid #334155;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-header .icon {
+      width: 18px;
+      height: 18px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    .sidebar-header.active .icon {
+      background: #f59e0b;
+      animation: pulse 0.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .status-item {
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #334155;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      border-left: 3px solid #64748b;
+      animation: slideIn 0.2s ease-out;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .status-item.rag { border-left-color: #8b5cf6; }
+    .status-item.llm { border-left-color: #3b82f6; }
+    .status-item.mcp { border-left-color: #22c55e; }
+    .status-item.tool { border-left-color: #f59e0b; }
+    .status-item.error { border-left-color: #ef4444; }
+    .status-item.done { border-left-color: #10b981; }
+    .status-item .title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-item .title .badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      text-transform: uppercase;
+    }
+    .status-item .details {
+      color: #94a3b8;
+      font-size: 0.8rem;
+      word-break: break-word;
+    }
+    .status-item .details code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'Consolas', monospace;
+    }
+    .stats-bar {
+      padding: 10px 16px;
+      background: #0f172a;
+      border-top: 1px solid #334155;
+      font-size: 0.75rem;
+      color: #64748b;
+      display: flex;
+      gap: 16px;
+    }
+    .stat { display: flex; align-items: center; gap: 4px; }
+    .stat-value { color: #e2e8f0; font-weight: 600; }
     #chat {
       background: #fff;
       border: 1px solid #cbd5e1;
       border-radius: 12px;
-      min-height: 480px;
-      max-height: 480px;
+      flex: 1;
       overflow-y: auto;
       padding: 16px;
       margin-bottom: 12px;
@@ -39,6 +152,28 @@
     }
     .user { background: #dbeafe; }
     .assistant { background: #e2e8f0; }
+    .assistant.streaming {
+      background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .typing-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: #475569;
+      margin-left: 2px;
+      animation: blink 0.8s infinite;
+      vertical-align: text-bottom;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
     .controls {
       display: flex;
       gap: 8px;
@@ -50,11 +185,24 @@
       border-radius: 8px;
       border: 1px solid #cbd5e1;
     }
+    input:disabled {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
     button {
       padding: 12px 18px;
       border: 0;
       border-radius: 8px;
       cursor: pointer;
+      background: #3b82f6;
+      color: white;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) { background: #2563eb; }
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
     }
     .examples {
       margin-top: 14px;
@@ -68,69 +216,285 @@
       background: #eef2ff;
       border-radius: 999px;
       cursor: pointer;
+      transition: background 0.2s;
     }
+    .pill:hover { background: #c7d2fe; }
+    .clear-btn {
+      background: transparent;
+      color: #64748b;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      margin-left: auto;
+    }
+    .clear-btn:hover { color: #334155; background: transparent; }
   </style>
 </head>
 <body>
-  <h1>Car Sales Portal Chatbot</h1>
-  <div class="sub">Local web chatbot with Ollama, RAG, and MCP tools for inventory, payments, trade-ins, hours, warranties, and test drives.</div>
-
-  <div id="chat"></div>
-
-  <div class="controls">
-    <input id="message" placeholder="Ask about inventory, financing, trade-ins, or appointments..." />
-    <button onclick="sendMessage()">Send</button>
+  <div class="header">
+    <h1>Car Sales Portal Chatbot</h1>
+    <p class="sub">AI chatbot with Ollama, RAG, and MCP tools - Watch the sidebar to see what's happening!</p>
   </div>
 
-  <div class="examples">
-    Try:
-    <span class="pill" onclick="fillPrompt(`Show me SUVs under $35,000 with AWD`)">Show me SUVs under $35,000 with AWD</span>
-    <span class="pill" onclick="fillPrompt(`Compare CS1002 and CS1005`)">Compare CS1002 and CS1005</span>
-    <span class="pill" onclick="fillPrompt(`Estimate payment for CS1003 with $5000 down for 72 months`)">Estimate payment for CS1003 with $5000 down for 72 months</span>
-    <span class="pill" onclick="fillPrompt(`I want to schedule a test drive for CS1001 next Tuesday`)">Schedule a test drive</span>
+  <div class="main-container">
+    <div class="chat-area">
+      <div id="chat"></div>
+
+      <div class="controls">
+        <input id="message" placeholder="Ask about inventory, financing, trade-ins, or appointments..." />
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+      </div>
+
+      <div class="examples">
+        Try:
+        <span class="pill" onclick="fillPrompt(`Show me SUVs under $35,000 with AWD`)">Show me SUVs under $35,000 with AWD</span>
+        <span class="pill" onclick="fillPrompt(`Compare CS1002 and CS1005`)">Compare CS1002 and CS1005</span>
+        <span class="pill" onclick="fillPrompt(`Estimate payment for CS1003 with $5000 down for 72 months`)">Estimate payment for CS1003</span>
+        <span class="pill" onclick="fillPrompt(`I want to schedule a test drive for CS1001 next Tuesday`)">Schedule a test drive</span>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="sidebar-header" id="sidebarHeader">
+        <div class="icon"></div>
+        <span>Activity Monitor</span>
+        <button class="clear-btn" onclick="clearStatus()">Clear</button>
+      </div>
+      <div class="sidebar-content" id="statusLog"></div>
+      <div class="stats-bar">
+        <div class="stat">RAG: <span class="stat-value" id="statRag">0</span></div>
+        <div class="stat">Tools: <span class="stat-value" id="statTools">0</span></div>
+        <div class="stat">Tokens: <span class="stat-value" id="statTokens">0</span></div>
+      </div>
+    </div>
   </div>
 
   <script>
     const chat = document.getElementById("chat");
     const input = document.getElementById("message");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusLog = document.getElementById("statusLog");
+    const sidebarHeader = document.getElementById("sidebarHeader");
 
-    function add(role, text) {
+    let stats = { rag: 0, tools: 0, tokens: 0 };
+    let isStreaming = false;
+    let currentAssistantDiv = null;
+
+    function updateStats() {
+      document.getElementById("statRag").textContent = stats.rag;
+      document.getElementById("statTools").textContent = stats.tools;
+      document.getElementById("statTokens").textContent = stats.tokens;
+    }
+
+    function addStatus(type, title, details = null) {
       const div = document.createElement("div");
-      div.className = `msg ${role}`;
-      div.textContent = `${role === "user" ? "You" : "Assistant"}: ${text}`;
+      div.className = `status-item ${type}`;
+
+      let detailsHtml = "";
+      if (details) {
+        const formatted = formatDetails(details);
+        if (formatted) {
+          detailsHtml = `<div class="details">${formatted}</div>`;
+        }
+      }
+
+      div.innerHTML = `
+        <div class="title">
+          <span class="badge">${type}</span>
+          ${title}
+        </div>
+        ${detailsHtml}
+      `;
+      statusLog.appendChild(div);
+      statusLog.scrollTop = statusLog.scrollHeight;
+    }
+
+    function formatDetails(details) {
+      if (!details || Object.keys(details).length === 0) return "";
+
+      const parts = [];
+      for (const [key, value] of Object.entries(details)) {
+        if (value === null || value === undefined) continue;
+        if (Array.isArray(value)) {
+          parts.push(`${key}: ${value.join(", ")}`);
+        } else if (typeof value === "object") {
+          parts.push(`${key}: <code>${JSON.stringify(value)}</code>`);
+        } else {
+          parts.push(`${key}: <code>${value}</code>`);
+        }
+      }
+      return parts.join(" | ");
+    }
+
+    function clearStatus() {
+      statusLog.innerHTML = "";
+      stats = { rag: 0, tools: 0, tokens: 0 };
+      updateStats();
+    }
+
+    function setStreaming(active) {
+      isStreaming = active;
+      input.disabled = active;
+      sendBtn.disabled = active;
+      if (active) {
+        sidebarHeader.classList.add("active");
+        sendBtn.textContent = "...";
+      } else {
+        sidebarHeader.classList.remove("active");
+        sendBtn.textContent = "Send";
+      }
+    }
+
+    function add(role, text, streaming = false) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}` + (streaming ? " streaming" : "");
+      div.innerHTML = `<strong>${role === "user" ? "You" : "Assistant"}:</strong> ${escapeHtml(text)}`;
+      if (streaming) {
+        div.innerHTML += '<span class="typing-cursor"></span>';
+      }
       chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateAssistantMessage(div, text, done = false) {
+      div.innerHTML = `<strong>Assistant:</strong> ${escapeHtml(text)}`;
+      if (!done) {
+        div.innerHTML += '<span class="typing-cursor"></span>';
+      }
+      if (done) {
+        div.classList.remove("streaming");
+      }
       chat.scrollTop = chat.scrollHeight;
     }
 
     function fillPrompt(text) {
+      if (isStreaming) return;
       input.value = text;
       input.focus();
     }
 
     async function sendMessage() {
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || isStreaming) return;
 
       add("user", text);
       input.value = "";
+      setStreaming(true);
+
+      addStatus("llm", "Starting request...", { query: text.substring(0, 50) + (text.length > 50 ? "..." : "") });
 
       try {
-        const res = await fetch("/chat", {
+        const response = await fetch("/chat/stream", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: text })
         });
 
-        const data = await res.json();
-        add("assistant", data.reply || "(no reply)");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let assistantText = "";
+        currentAssistantDiv = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          let eventType = "";
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              eventType = line.substring(7);
+            } else if (line.startsWith("data: ")) {
+              const data = JSON.parse(line.substring(6));
+              handleEvent(eventType, data);
+
+              if (eventType === "content") {
+                stats.tokens++;
+                updateStats();
+                assistantText += data.token;
+                if (!currentAssistantDiv) {
+                  currentAssistantDiv = add("assistant", assistantText, true);
+                } else {
+                  updateAssistantMessage(currentAssistantDiv, assistantText, false);
+                }
+              } else if (eventType === "done") {
+                if (currentAssistantDiv) {
+                  updateAssistantMessage(currentAssistantDiv, assistantText, true);
+                } else if (assistantText === "") {
+                  add("assistant", "(no response)");
+                }
+              }
+            }
+          }
+        }
+
       } catch (e) {
+        addStatus("error", "Connection error", { error: e.message });
         add("assistant", "Error contacting server.");
+      } finally {
+        setStreaming(false);
+        currentAssistantDiv = null;
+      }
+    }
+
+    function handleEvent(eventType, data) {
+      switch (eventType) {
+        case "status":
+          handleStatusEvent(data);
+          break;
+        case "tool_call":
+          stats.tools++;
+          updateStats();
+          addStatus("tool", data.message, data.details);
+          break;
+        case "tool_result":
+          addStatus("mcp", data.message, data.details);
+          break;
+        case "error":
+          addStatus("error", data.message);
+          break;
+        case "done":
+          addStatus("done", "Response complete", data);
+          break;
+      }
+    }
+
+    function handleStatusEvent(data) {
+      const typeMap = {
+        "rag_start": { category: "rag", message: data.message },
+        "rag_complete": { category: "rag", message: data.message, countRag: true },
+        "llm_start": { category: "llm", message: data.message },
+        "llm_continue": { category: "llm", message: data.message },
+      };
+
+      const mapped = typeMap[data.type];
+      if (mapped) {
+        addStatus(mapped.category, mapped.message, data.details);
+        if (mapped.countRag) {
+          stats.rag++;
+          updateStats();
+        }
+      } else {
+        addStatus("llm", data.message, data.details);
       }
     }
 
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
+      if (e.key === "Enter" && !isStreaming) sendMessage();
     });
+
+    // Initial status
+    addStatus("done", "Ready to chat", { model: "qwen2.5:3b", embedding: "nomic-embed-text" });
   </script>
 </body>
 </html>

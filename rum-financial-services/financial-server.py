@@ -36,7 +36,7 @@ else:
 if len(sys.argv) > 2:
     DEFAULT_DELAY = float(sys.argv[2])
 else:
-    DEFAULT_DELAY = float(os.environ.get('DELAY', 6.0))
+    DEFAULT_DELAY = float(os.environ.get('DELAY', 24.0))
 
 # Configurable delays (in seconds) for critical financial operations
 DELAYS = {

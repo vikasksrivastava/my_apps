@@ -36,7 +36,7 @@
 //
 // STEP 3: Start the TechMart demo server
 // --------------------------------------
-//   cd /path/to/rum_app
+//   cd /path/to/my_apps
 //   python3 ecommerce-server.py
 //
 // STEP 4: Open the demo site

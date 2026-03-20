@@ -5,7 +5,7 @@ Two demo applications for Real User Monitoring (RUM) demonstrations with intenti
 ## Project Structure
 
 ```
-rum_app/
+my_apps/
 ├── package.json
 ├── public-ecommerce/          # E-commerce demo (TechMart)
 │   ├── ecommerce-server.js    # Node.js server

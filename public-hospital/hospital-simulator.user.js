@@ -36,7 +36,7 @@
 //
 // STEP 3: Start the MedCare Hospital server
 // -----------------------------------------
-//   cd /path/to/rum_app
+//   cd /path/to/my_apps
 //   python3 hospital-server.py
 //
 // STEP 4: Open the hospital platform

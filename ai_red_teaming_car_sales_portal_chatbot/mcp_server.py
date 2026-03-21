@@ -73,6 +73,26 @@ def find_vehicle(stock_id: str):
     return None
 
 
+def normalize_drivetrain(value: str) -> str:
+    """Normalize drivetrain values to match inventory format."""
+    if not value:
+        return ""
+    v = value.lower().strip().replace("-", " ").replace("_", " ")
+    # AWD variations
+    if v in ["awd", "all wheel drive", "allwheeldrive", "all wheel", "allwheel"]:
+        return "awd"
+    # 4WD variations
+    if v in ["4wd", "4x4", "four wheel drive", "fourwheeldrive", "four wheel", "4 wheel drive"]:
+        return "4wd"
+    # FWD variations
+    if v in ["fwd", "front wheel drive", "frontwheeldrive", "front wheel"]:
+        return "fwd"
+    # RWD variations
+    if v in ["rwd", "rear wheel drive", "rearwheeldrive", "rear wheel"]:
+        return "rwd"
+    return v
+
+
 @mcp.tool()
 def search_inventory(
     make: Optional[str] = "",
@@ -84,15 +104,26 @@ def search_inventory(
     max_year: Optional[int] = None,
     min_price: Optional[int] = None,
     max_price: Optional[int] = None,
-    max_mileage: Optional[int] = None
+    max_mileage: Optional[int] = None,
+    sort_by: Optional[str] = "",
+    limit: Optional[int] = None
 ) -> str:
-    """Search the dealership inventory with optional filters like make, model, body type, price, or mileage."""
+    """Search the dealership inventory with optional filters. Use sort_by='price_low' for cheapest, 'price_high' for most expensive, 'year_new' for newest, 'mileage_low' for lowest mileage. Use limit=1 to get only the top result."""
+    # Normalize "any" and similar values to empty string (match all)
+    def normalize_any(value: str) -> str:
+        if not value:
+            return ""
+        v = value.lower().strip()
+        if v in ["any", "all", "none", "n/a", "na", "*", "null", "undefined"]:
+            return ""
+        return value
+
     # Handle None values with sensible defaults
-    make = make or ""
-    model = model or ""
-    body_type = body_type or ""
-    fuel_type = fuel_type or ""
-    drivetrain = drivetrain or ""
+    make = normalize_any(make or "")
+    model = normalize_any(model or "")
+    body_type = normalize_any(body_type or "")
+    fuel_type = normalize_any(fuel_type or "")
+    drivetrain = normalize_drivetrain(normalize_any(drivetrain or ""))
     min_year = min_year if min_year is not None else 0
     max_year = max_year if max_year is not None else 9999
     min_price = min_price if min_price is not None else 0
@@ -109,7 +140,7 @@ def search_inventory(
             continue
         if fuel_type and fuel_type.lower() != car["fuel_type"].lower():
             continue
-        if drivetrain and drivetrain.lower() != car["drivetrain"].lower():
+        if drivetrain and normalize_drivetrain(car["drivetrain"]) != drivetrain:
             continue
         if not (min_year <= car["year"] <= max_year):
             continue
@@ -122,15 +153,34 @@ def search_inventory(
     if not results:
         return "No inventory matches those filters."
 
+    # Apply sorting if specified
+    sort_by_normalized = normalize_any(sort_by or "").lower().replace(" ", "_").replace("-", "_")
+    if sort_by_normalized in ["price_low", "price", "cheapest", "lowest_price"]:
+        results.sort(key=lambda c: c["price"])
+    elif sort_by_normalized in ["price_high", "most_expensive", "highest_price"]:
+        results.sort(key=lambda c: c["price"], reverse=True)
+    elif sort_by_normalized in ["year_new", "newest", "year"]:
+        results.sort(key=lambda c: c["year"], reverse=True)
+    elif sort_by_normalized in ["year_old", "oldest"]:
+        results.sort(key=lambda c: c["year"])
+    elif sort_by_normalized in ["mileage_low", "mileage", "lowest_mileage"]:
+        results.sort(key=lambda c: c["mileage"])
+    elif sort_by_normalized in ["mileage_high", "highest_mileage"]:
+        results.sort(key=lambda c: c["mileage"], reverse=True)
+
+    # Apply limit if specified
+    max_results = limit if limit and limit > 0 else 12
+    display_results = results[:max_results]
+
     lines = []
-    for car in results[:12]:
+    for car in display_results:
         lines.append(
             f'{car["stock_id"]}: {car["year"]} {car["make"]} {car["model"]} | '
             f'${car["price"]:,} | {car["mileage"]:,} miles | {car["body_type"]} | '
             f'{car["fuel_type"]} | {car["status"]}'
         )
-    if len(results) > 12:
-        lines.append(f"...and {len(results) - 12} more results.")
+    if len(results) > max_results:
+        lines.append(f"...and {len(results) - max_results} more results.")
     return "\n".join(lines)
 
 
